@@ -192,6 +192,12 @@ const isValidFileNameAwsUpload = (fileName: string): boolean => {
 	return regex.test(fileName);
 };
 
+const isValidPhotoNameAwsUpload = (fileName: string) => {
+	//const regex = /^[a-zA-Z0-9_\-/]+\/[a-zA-Z0-9_-]+(?:\.(jpg|png|jpeg))$/;
+	const regex = /^([a-zA-Z0-9\s\-+_!@#$%^&*(),.\/]+)(?:\.(jpg|png|jpeg))$/i;
+	return regex.test(fileName);
+};
+
 // const generateQrCode = async (data: string | Record<string, string[]>) => {
 // 	const code = new Promise((resolve, reject) => {
 // 		const dataString = typeof data === 'object' ? JSON.stringify(data) : data;
@@ -233,6 +239,7 @@ export {
 	createToken,
 	verifyToken,
 	isValidFileNameAwsUpload,
+	isValidPhotoNameAwsUpload,
 	generateAccessToken,
 	generateRefreshToken,
 	getDomainReferer,

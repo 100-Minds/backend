@@ -2,8 +2,10 @@ import { ENVIRONMENT } from '@/common/config';
 import type { IAwsUploadFile } from '@/common/interfaces';
 import AppError from './appError';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { isValidFileNameAwsUpload } from './helper';
+import { isValidFileNameAwsUpload, isValidPhotoNameAwsUpload } from './helper';
 import { AbortController } from 'abort-controller';
+import sharp from 'sharp';
+import { encode } from 'blurhash';
 
 if (
 	!ENVIRONMENT.R2.ACCOUNT_ID ||
@@ -74,5 +76,49 @@ export const uploadCourseVideo = async (payload: IAwsUploadFile): Promise<{ secu
 			throw new AppError('Video upload timed out. Please try again.', 408);
 		}
 		throw new AppError('Failed to upload video. Please try again.', 500);
+	}
+};
+
+export const uploadPictureFile = async (payload: IAwsUploadFile): Promise<{ secureUrl: string }> => {
+	const { fileName, buffer, mimetype } = payload;
+
+	if (!fileName || !buffer || !mimetype) {
+		throw new AppError('File name, buffer and mimetype are required', 400);
+	}
+
+	if (fileName && !isValidPhotoNameAwsUpload(fileName)) {
+		throw new AppError('Invalid file name', 400);
+	}
+
+	let bufferFile = buffer;
+
+	if (mimetype.includes('image')) {
+		bufferFile = await sharp(buffer)
+			.resize({
+				height: 1920,
+				width: 1080,
+				fit: 'contain',
+			})
+			.toBuffer();
+	}
+
+	const uploadParams = {
+		Bucket: ENVIRONMENT.R2.BUCKET_NAME,
+		Key: fileName,
+		Body: bufferFile,
+		ContentType: mimetype,
+	};
+
+	try {
+		const command = new PutObjectCommand(uploadParams);
+		await r2.send(command);
+		const secureUrl = `${ENVIRONMENT.R2.CDN_URL}/${fileName}`;
+
+		return { secureUrl };
+	} catch (error) {
+		console.log(error);
+		return {
+			secureUrl: '',
+		};
 	}
 };

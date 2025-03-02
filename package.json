@@ -45,6 +45,7 @@
 		"otp-generator": "^4.0.1",
 		"otpauth": "^9.3.6",
 		"pg": "^8.13.3",
+		"sharp": "^0.33.5",
 		"ts-custom-error": "^3.3.1",
 		"tsconfig-paths": "^4.2.0",
 		"util": "^0.12.5",

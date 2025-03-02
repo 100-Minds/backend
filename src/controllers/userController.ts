@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AppError, AppResponse, toJSON } from '@/common/utils';
+import { AppError, AppResponse, toJSON, uploadPictureFile } from '@/common/utils';
 import { catchAsync } from '@/middlewares';
 import { userRepository } from '@/repository';
 import { IUser } from '@/common/interfaces';
@@ -66,6 +66,39 @@ export class UserController {
 
 		const updateProfile = await userRepository.update(user.id, updateData);
 
+		if (!updateProfile) {
+			throw new AppError('Failed to update profile', 500);
+		}
+
+		return AppResponse(res, 200, toJSON(updateProfile), 'Profile updated successfully');
+	});
+
+	uploadProfilePicture = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { file } = req;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+
+		if (!file) {
+			throw new AppError('File is required', 400);
+		}
+
+		const extinguishUser = await userRepository.findById(user.id as string);
+		if (!extinguishUser) {
+			throw new AppError('User not found', 404);
+		}
+
+		const { secureUrl } = await uploadPictureFile({
+			fileName: `profile-picture/${Date.now()}-${file.originalname}`,
+			buffer: file.buffer,
+			mimetype: file.mimetype,
+		});
+
+		const updateProfile = await userRepository.update(user.id, {
+			photo: secureUrl,
+		});
 		if (!updateProfile) {
 			throw new AppError('Failed to update profile', 500);
 		}
