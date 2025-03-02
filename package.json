@@ -1,7 +1,7 @@
 {
-	"name": "startease-expressjs-project",
+	"name": "100minds-project",
 	"version": "1.0.0",
-	"description": "Expressjs project generated using startease CLI tool",
+	"description": "100 Minds - Backend Development",
 	"main": "server.js",
 	"scripts": {
 		"start": "node -r ts-node/register/transpile-only -r tsconfig-paths/register build/server.js",
