@@ -19,7 +19,7 @@ export class CourseController {
 		}
 
 		// Upload video to R2 and get secure URL and blurhash
-		const { secureUrl, blurHash } = await uploadCourseVideo({
+		const { secureUrl } = await uploadCourseVideo({
 			fileName: `course-videos/${Date.now()}-${file.originalname}`, // Unique filename
 			buffer: file.buffer,
 			mimetype: file.mimetype,
@@ -28,7 +28,6 @@ export class CourseController {
 		// Log the result for testing
 		console.log('Uploaded video:', {
 			secureUrl,
-			blurHash,
 		});
 
 		return AppResponse(res, 201, null, 'Video upload test completed successfully');
@@ -150,6 +149,7 @@ export class CourseController {
 		const { user } = req;
 		const { title, courseId, scenarioId } = req.body;
 		const { file } = req;
+		console.log(title, courseId, scenarioId);
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -183,18 +183,22 @@ export class CourseController {
 			throw new AppError('Failed to create chapter', 500);
 		}
 
-		const { secureUrl, blurHash } = await uploadCourseVideo({
+		console.log("here")
+		const { secureUrl } = await uploadCourseVideo({
 			fileName: `course-videos/${Date.now()}-${file.originalname}`,
 			buffer: file.buffer,
 			mimetype: file.mimetype,
 		});
 
+		console.log("here2")
+		console.log('Uploaded video:', {
+			secureUrl,
+		});
+
 		const video = await courseRepository.createVideo({
 			chapterId: chapter.id,
 			videoURL: secureUrl,
-			scenarioId,
-			// Optionally store blurHash if needed (e.g., for UI previews)
-			blurHash,
+			...(scenarioId && scenarioId.trim() ? { scenarioId } : null),
 		});
 		if (!video) {
 			throw new AppError('Failed to create lesson video', 500);
@@ -310,7 +314,7 @@ export class CourseController {
 
 		let updatedVideo: ICourseVideo;
 		if (file) {
-			const { secureUrl, blurHash } = await uploadCourseVideo({
+			const { secureUrl } = await uploadCourseVideo({
 				fileName: `course-videos/${Date.now()}-${file.originalname}`,
 				buffer: file.buffer,
 				mimetype: file.mimetype,
@@ -318,7 +322,6 @@ export class CourseController {
 
 			const videoUpdates: Partial<ICourseVideo> = {
 				videoURL: secureUrl,
-				blurHash: blurHash || undefined,
 				...(scenarioId && scenarioId.trim() ? { scenarioId } : {}),
 			};
 
