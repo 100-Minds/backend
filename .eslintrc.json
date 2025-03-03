@@ -1,49 +1,36 @@
 {
-	"root": true,
-	"parser": "@typescript-eslint/parser",
-	"parserOptions": {
-		"project": "./tsconfig.json"
-	},
-	"plugins": ["@typescript-eslint"],
-	"extends": [
-		"eslint:recommended",
-		"plugin:@typescript-eslint/eslint-recommended",
-		"plugin:@typescript-eslint/recommended",
-		// Prettier plugin should always be the last to overwrite existing plugins settings that might conflict with prettier
-		"prettier"
-	],
-	"rules": {
-		// Add additional configurations or overwrite plugin configurations here
-
-		// Allow named and default exports
-		"import/prefer-default-export": "off",
-
-		// Allow using console methods
-		"no-console": "off",
-
-		// Allow boolean casting
-		"no-extra-boolean-cast": "off",
-
-		// Allow nested ternary expressions
-		"no-nested-ternary": "off",
-
-		// Allow using regex
-		"no-control-regex": "off",
-
-		// Allow parameter reassignment
-		"no-param-reassign": "off",
-
-		// Warn when any type is used
-		"@typescript-eslint/no-explicit-any": "warn",
-
-		// Disallow unused variables
-		"@typescript-eslint/no-unused-vars": "error",
-
-		// Allow unused expressions
-		"@typescript-eslint/no-unused-expressions": "off",
-
-		// Allow the use of _ in code
-		"no-underscore-dangle": "off",
-		"prefer-const": "warn"
-	}
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "project": "./tsconfig.json"
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "eslint-config-prettier"
+    ],
+    "rules": {
+        "import/prefer-default-export": "off",
+        "no-console": "off",
+        "no-extra-boolean-cast": "off",
+        "no-nested-ternary": "off",
+        "no-control-regex": "off",
+        "no-param-reassign": "off",
+        "@typescript-eslint/no-explicit-any": "warn",
+        //"@typescript-eslint/no-unused-vars": "error",
+		"@typescript-eslint/no-unused-vars": ["error", {
+            "vars": "all",
+            "args": "after-used",
+            "ignoreRestSiblings": false,
+            "argsIgnorePattern": "^_",
+            "varsIgnorePattern": "^_"
+        }],
+        "@typescript-eslint/no-unused-expressions": "off",
+        "no-underscore-dangle": "off",
+        "prefer-const": "warn"
+    }
 }

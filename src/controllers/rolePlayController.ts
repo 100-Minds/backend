@@ -2,13 +2,13 @@ import { Request, Response } from 'express';
 import { AppError, AppResponse, toJSON } from '@/common/utils';
 import { catchAsync } from '@/middlewares';
 import { scenarioRepository } from '@/repository';
-import { rolePlayRepository } from '@/repository';
+//import { rolePlayRepository } from '@/repository';
 
 export class RolePlayController {
 	createRolePlay = catchAsync(async (req: Request, res: Response) => {
-		const { scenarioId } = req.body;
+		//const { scenarioId } = req.body;
 		const { user } = req;
-		const { file } = req;
+		//const { file } = req;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);

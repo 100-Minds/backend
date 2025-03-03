@@ -179,6 +179,7 @@ class AuthController {
 		);
 
 		const passwordResetUrl = `${getDomainReferer(req)}/reset-password?token=${hashedPasswordResetToken}`;
+		console.log(passwordResetUrl);
 
 		await userRepository.update(user.id, {
 			passwordResetToken: passwordResetToken,

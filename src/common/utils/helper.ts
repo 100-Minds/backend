@@ -3,8 +3,8 @@ import { randomBytes, randomInt } from 'crypto';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { encode } from 'hi-base32';
 import { ENVIRONMENT } from '../config';
-import { IHashData, IToken } from '../interfaces';
-import type { CookieOptions, Response, Request } from 'express';
+import { IHashData } from '../interfaces';
+import type { Response, Request } from 'express';
 import { promisify } from 'util';
 
 const generateRandomString = () => {
@@ -193,7 +193,6 @@ const isValidFileNameAwsUpload = (fileName: string): boolean => {
 };
 
 const isValidPhotoNameAwsUpload = (fileName: string) => {
-	//const regex = /^[a-zA-Z0-9_\-/]+\/[a-zA-Z0-9_-]+(?:\.(jpg|png|jpeg))$/;
 	const regex = /^([a-zA-Z0-9\s\-+_!@#$%^&*(),.\/]+)(?:\.(jpg|png|jpeg))$/i;
 	return regex.test(fileName);
 };
@@ -222,6 +221,7 @@ const getDomainReferer = (req: Request) => {
 
 		return referer;
 	} catch (error) {
+		console.log(error)
 		return null;
 	}
 };

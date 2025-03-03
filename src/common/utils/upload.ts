@@ -5,7 +5,6 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { isValidFileNameAwsUpload, isValidPhotoNameAwsUpload } from './helper';
 import { AbortController } from 'abort-controller';
 import sharp from 'sharp';
-import { encode } from 'blurhash';
 
 if (
 	!ENVIRONMENT.R2.ACCOUNT_ID ||

@@ -211,6 +211,7 @@ class TeamController {
 		});
 
 		const inviteUrl = `${getDomainReferer(req)}/join-team?invite=${hashedInviteLink}`;
+		console.log(inviteUrl);
 
 		// Send invite URL (e.g., via email or return in response)
 		// await sendInviteEmail(email, user.firstName, inviteUrl);

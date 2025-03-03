@@ -1,7 +1,6 @@
 import { knexDb } from '@/common/config';
 import { IRolePlay } from '@/common/interfaces';
 import { DateTime } from 'luxon';
-import { scenarioRepository } from './scenarioRepository';
 
 class RolePlayRepository {
 	create = async (payload: Partial<IRolePlay>): Promise<IRolePlay[]> => {
