@@ -22,6 +22,4 @@ router.post('/update-lesson', multerUpload.single('video'), courseController.upd
 // router.get('/get-chapter', courseController.getChapter);
 // router.get('/get-chapters', courseController.getAllChapters);
 
-router.post('/create-video', multerUpload.single('video'), courseController.testUploadVideo);
-
 export { router as courseRouter };

@@ -5,34 +5,6 @@ import { courseRepository } from '@/repository';
 import { ICourseVideo } from '@/common/interfaces';
 
 export class CourseController {
-	testUploadVideo = catchAsync(async (req: Request, res: Response) => {
-		const { user } = req;
-		const file = req.file; // Assuming multer middleware provides req.file
-
-		// Validate user and inputs
-		if (!user) {
-			throw new AppError('Please log in again', 401);
-		}
-
-		if (!file) {
-			throw new AppError('Chapter ID and video file are required', 400);
-		}
-
-		// Upload video to R2 and get secure URL and blurhash
-		const { secureUrl } = await uploadCourseVideo({
-			fileName: `course-videos/${Date.now()}-${file.originalname}`, // Unique filename
-			buffer: file.buffer,
-			mimetype: file.mimetype,
-		});
-
-		// Log the result for testing
-		console.log('Uploaded video:', {
-			secureUrl,
-		});
-
-		return AppResponse(res, 201, null, 'Video upload test completed successfully');
-	});
-
 	createCourse = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { name } = req.body;
@@ -149,7 +121,6 @@ export class CourseController {
 		const { user } = req;
 		const { title, courseId, scenarioId } = req.body;
 		const { file } = req;
-		console.log(title, courseId, scenarioId);
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -183,16 +154,10 @@ export class CourseController {
 			throw new AppError('Failed to create chapter', 500);
 		}
 
-		console.log("here")
 		const { secureUrl } = await uploadCourseVideo({
 			fileName: `course-videos/${Date.now()}-${file.originalname}`,
 			buffer: file.buffer,
 			mimetype: file.mimetype,
-		});
-
-		console.log("here2")
-		console.log('Uploaded video:', {
-			secureUrl,
 		});
 
 		const video = await courseRepository.createVideo({

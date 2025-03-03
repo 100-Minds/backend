@@ -36,4 +36,9 @@ export const ENVIRONMENT: IEnvironment = {
 		BUCKET_NAME: process.env.R2_BUCKET_NAME!,
 		CDN_URL: process.env.R2_CDN_URL!,
 	},
+	REDIS: {
+		URL: process.env.QUEUE_REDIS_URL!,
+		PASSWORD: process.env.QUEUE_REDIS_PASSWORD!,
+		PORT: parseInt(process.env.QUEUE_REDIS_PORT!),
+	},
 };

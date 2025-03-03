@@ -34,4 +34,9 @@ export interface IEnvironment {
 		BUCKET_NAME: string;
 		CDN_URL: string;
 	};
+	REDIS: {
+		URL: string;
+		PORT: number;
+		PASSWORD: string;
+	};
 }
