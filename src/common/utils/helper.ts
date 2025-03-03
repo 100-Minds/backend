@@ -188,14 +188,15 @@ const generateRefreshToken = (userId: string): string => {
 };
 
 const isValidFileNameAwsUpload = (fileName: string): boolean => {
-	const regex = /^([a-zA-Z0-9\s\-+_!@#$%^&*(),.\/]+)(?:\.(mp4|mov|webm|avi))$/i;
-	return regex.test(fileName);
+    const regex = /^([a-zA-Z0-9\s\-+_!@#$%^&*(),./]+)(?:\.(mp4|mov|webm|avi))$/i;
+    return regex.test(fileName);
 };
 
 const isValidPhotoNameAwsUpload = (fileName: string) => {
-	const regex = /^([a-zA-Z0-9\s\-+_!@#$%^&*(),.\/]+)(?:\.(jpg|png|jpeg))$/i;
-	return regex.test(fileName);
+    const regex = /^([a-zA-Z0-9\s\-+_!@#$%^&*(),./]+)(?:\.(jpg|png|jpeg))$/i;
+    return regex.test(fileName);
 };
+
 
 // const generateQrCode = async (data: string | Record<string, string[]>) => {
 // 	const code = new Promise((resolve, reject) => {
