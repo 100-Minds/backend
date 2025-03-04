@@ -1,15 +1,20 @@
 import { Request, Response } from 'express';
-import { AppError, AppResponse, toJSON } from '@/common/utils';
+import { AppError, AppResponse, toJSON, uploadPictureFile } from '@/common/utils';
 import { catchAsync } from '@/middlewares';
 import { scenarioRepository } from '@/repository';
+import { IScenario } from '@/common/interfaces';
 
 export class ScenarioController {
 	createScenario = catchAsync(async (req: Request, res: Response) => {
 		const { scenario } = req.body;
 		const { user } = req;
+		const { file } = req;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
+		}
+		if (!file) {
+			throw new AppError('Scenario image is required', 400);
 		}
 
 		if (user.role === 'user') {
@@ -19,9 +24,16 @@ export class ScenarioController {
 			throw new AppError('Scenario is required', 400);
 		}
 
+		const { secureUrl: scenarioImage } = await uploadPictureFile({
+			fileName: `scenario-image/${Date.now()}-${file.originalname}`,
+			buffer: file.buffer,
+			mimetype: file.mimetype,
+		});
+
 		const [createScenario] = await scenarioRepository.create({
 			scenario,
 			userId: user.id,
+			scenarioImage,
 		});
 
 		if (!createScenario) {
@@ -75,6 +87,7 @@ export class ScenarioController {
 	updateScenario = catchAsync(async (req: Request, res: Response) => {
 		const { scenario, scenarioId } = req.body;
 		const { user } = req;
+		const { file } = req;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -102,9 +115,23 @@ export class ScenarioController {
 			throw new AppError('Scenario has already been deleted', 400);
 		}
 
-		const updateScenario = await scenarioRepository.update(scenarioId, {
-			scenario,
-		});
+		let updateScenario: IScenario[] | null;
+		if (file) {
+			const { secureUrl: scenarioImage } = await uploadPictureFile({
+				fileName: `scenario-image/${Date.now()}-${file.originalname}`,
+				buffer: file.buffer,
+				mimetype: file.mimetype,
+			});
+
+			updateScenario = await scenarioRepository.update(scenarioId, {
+				scenarioImage,
+				scenario,
+			});
+		} else {
+			updateScenario = await scenarioRepository.update(scenarioId, {
+				scenario,
+			});
+		}
 
 		if (!updateScenario) {
 			throw new AppError('Failed to update scenario', 500);

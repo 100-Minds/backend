@@ -2,6 +2,7 @@ export interface ICourse {
 	id: string;
 	name: string;
 	userId: string;
+	scenarioId: string;
 	isDeleted: boolean;
 	created_at?: Date;
 	updated_at?: Date;
@@ -20,7 +21,6 @@ export interface ICourseChapter {
 export interface ICourseVideo {
 	id: string;
 	chapterId: string;
-	scenarioId: string;
 	videoURL: string;
 	blurHash: string;
 	isDeleted: boolean;

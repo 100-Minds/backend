@@ -188,15 +188,14 @@ const generateRefreshToken = (userId: string): string => {
 };
 
 const isValidFileNameAwsUpload = (fileName: string): boolean => {
-    const regex = /^([a-zA-Z0-9\s\-+_!@#$%^&*(),./]+)(?:\.(mp4|mov|webm|avi))$/i;
-    return regex.test(fileName);
+	const regex = /^([a-zA-Z0-9\s\-+_!@#$%^&*(),./]+)(?:\.(mp4|mov|webm|avi))$/i;
+	return regex.test(fileName);
 };
 
 const isValidPhotoNameAwsUpload = (fileName: string) => {
-    const regex = /^([a-zA-Z0-9\s\-+_!@#$%^&*(),./]+)(?:\.(jpg|png|jpeg))$/i;
-    return regex.test(fileName);
+	const regex = /^([a-zA-Z0-9\s\-+_!@#$%^&*(),./]+)(?:\.(jpg|png|jpeg))$/i;
+	return regex.test(fileName);
 };
-
 
 // const generateQrCode = async (data: string | Record<string, string[]>) => {
 // 	const code = new Promise((resolve, reject) => {
@@ -222,9 +221,77 @@ const getDomainReferer = (req: Request) => {
 
 		return referer;
 	} catch (error) {
-		console.log(error)
+		console.log(error);
 		return null;
 	}
+};
+
+const formatTimeSpent = (totalSeconds: number): string => {
+	if (totalSeconds < 0) {
+		throw new Error('Time cannot be negative');
+	}
+
+	const days = Math.floor(totalSeconds / (24 * 60 * 60));
+	const remainingSeconds = totalSeconds % (24 * 60 * 60);
+	const hours = Math.floor(remainingSeconds / (60 * 60));
+	const remainingMinutes = Math.floor(remainingSeconds / 60) % 60;
+	const seconds = remainingSeconds % 60;
+
+	let formattedTime = '';
+
+	if (days > 0) {
+		formattedTime += `${days}day`;
+		if (days > 1) formattedTime += 's';
+		if (hours > 0 || remainingMinutes > 0 || seconds > 0) formattedTime += ':';
+	}
+
+	if (hours > 0) {
+		formattedTime += `${hours}hr`;
+		if (hours > 1) formattedTime += 's';
+		if (remainingMinutes > 0 || seconds > 0) formattedTime += ':';
+	}
+
+	if (remainingMinutes > 0) {
+		formattedTime += `${remainingMinutes}min`;
+		if (remainingMinutes > 1) formattedTime += 's';
+		if (seconds > 0) formattedTime += ':';
+	}
+
+	if (seconds > 0) {
+		formattedTime += `${seconds}sec`;
+		if (seconds > 1) formattedTime += 's';
+	}
+
+	if (formattedTime === '') {
+		formattedTime = '0sec';
+	}
+
+	return formattedTime;
+};
+
+const parseTimeSpent = (timeStr: string): number => {
+	if (!timeStr || timeStr === '0sec') return 0;
+
+	let totalSeconds = 0;
+	const parts = timeStr.split(':');
+
+	parts.forEach((part) => {
+		if (part.includes('day')) {
+			const days = parseInt(part, 10);
+			totalSeconds += days * 24 * 60 * 60;
+		} else if (part.includes('hr')) {
+			const hours = parseInt(part, 10);
+			totalSeconds += hours * 60 * 60;
+		} else if (part.includes('min')) {
+			const minutes = parseInt(part, 10);
+			totalSeconds += minutes * 60;
+		} else if (part.includes('sec')) {
+			const seconds = parseInt(part, 10);
+			totalSeconds += seconds;
+		}
+	});
+
+	return totalSeconds;
 };
 
 export {
@@ -244,4 +311,6 @@ export {
 	generateAccessToken,
 	generateRefreshToken,
 	getDomainReferer,
+	formatTimeSpent,
+	parseTimeSpent,
 };

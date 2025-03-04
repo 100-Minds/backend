@@ -1,9 +1,10 @@
 export interface IRolePlay {
 	id: string;
 	userId: string;
-	timeSpent: Date;
+	timeSpent: string;
 	scenarioId: string;
-	rolePlayImage: string;
+	courseId: string;
+	isDone: boolean;
     isDeleted: boolean;
 	created_at?: Date;
 	updated_at?: Date;

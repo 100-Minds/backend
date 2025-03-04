@@ -6,7 +6,6 @@ export async function up(knex: Knex): Promise<void> {
 		table.string('videoURL').notNullable();
 		table.boolean('isDeleted').defaultTo(false);
 		table.uuid('chapterId').references('id').inTable('course_chapters').onDelete('CASCADE').notNullable();
-		table.uuid('scenarioId').references('id').inTable('sys_scenario').onDelete('SET NULL').nullable(); // 1:1 with sys_scenario.id
 		table.timestamps(true, true);
 	});
 }

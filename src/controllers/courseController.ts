@@ -7,7 +7,7 @@ import { ICourseVideo } from '@/common/interfaces';
 export class CourseController {
 	createCourse = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { name } = req.body;
+		const { name, scenarioId } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -25,7 +25,11 @@ export class CourseController {
 			throw new AppError('Course name exist already', 400);
 		}
 
-		const [course] = await courseRepository.create({ name, userId: user.id });
+		const [course] = await courseRepository.create({
+			name,
+			userId: user.id,
+			...(scenarioId && scenarioId.trim() ? { scenarioId } : null),
+		});
 		if (!course) {
 			throw new AppError('Failed to create course', 500);
 		}
@@ -51,7 +55,7 @@ export class CourseController {
 
 	updateCourse = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { name, courseId } = req.body;
+		const { name, courseId, scenarioId } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -78,7 +82,10 @@ export class CourseController {
 			throw new AppError('Course has already been deleted', 400);
 		}
 
-		const updatedCourse = await courseRepository.update(courseId, { name });
+		const updatedCourse = await courseRepository.update(courseId, {
+			name,
+			...(scenarioId && scenarioId.trim() ? { scenarioId } : null),
+		});
 
 		return AppResponse(res, 200, toJSON(updatedCourse), 'Course updated successfully');
 	});
@@ -119,7 +126,7 @@ export class CourseController {
 
 	createLesson = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { title, courseId, scenarioId } = req.body;
+		const { title, courseId } = req.body;
 		const { file } = req;
 
 		if (!user) {
@@ -163,7 +170,6 @@ export class CourseController {
 		const video = await courseRepository.createVideo({
 			chapterId: chapter.id,
 			videoURL: secureUrl,
-			...(scenarioId && scenarioId.trim() ? { scenarioId } : null),
 		});
 		if (!video) {
 			throw new AppError('Failed to create lesson video', 500);
@@ -248,7 +254,7 @@ export class CourseController {
 
 	updateLesson = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { title, chapterId, scenarioId } = req.body;
+		const { title, chapterId } = req.body;
 		const { file } = req;
 
 		if (!user) {
@@ -287,21 +293,11 @@ export class CourseController {
 
 			const videoUpdates: Partial<ICourseVideo> = {
 				videoURL: secureUrl,
-				...(scenarioId && scenarioId.trim() ? { scenarioId } : {}),
 			};
 
 			[updatedVideo] = await courseRepository.updateVideo(chapterId, videoUpdates);
 			if (!updatedVideo) {
 				throw new AppError('Failed to update lesson video', 500);
-			}
-		} else if (scenarioId) {
-			const existingVideo = await courseRepository.getVideoByChapterId(chapterId);
-			if (existingVideo) {
-				const videoUpdates: Partial<ICourseVideo> = { scenarioId };
-				[updatedVideo] = await courseRepository.updateVideo(existingVideo.id, videoUpdates);
-				if (!updatedVideo) {
-					throw new AppError('Failed to update lesson video scenario', 500);
-				}
 			}
 		}
 

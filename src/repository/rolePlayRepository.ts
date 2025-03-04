@@ -4,16 +4,6 @@ import { DateTime } from 'luxon';
 
 class RolePlayRepository {
 	create = async (payload: Partial<IRolePlay>): Promise<IRolePlay[]> => {
-		// if (!payload.userId || !payload.scenarioId) {
-		// 	throw new Error('User ID and scenario ID are required for role_play creation');
-		// }
-
-		// const scenarioExists = await scenarioRepository.findById(payload.scenarioId);
-
-		// if (!scenarioExists) {
-		// 	throw new Error('Invalid or deleted scenario ID');
-		// }
-
 		return await knexDb.table('role_play').insert(payload).returning('*');
 	};
 
@@ -26,6 +16,18 @@ class RolePlayRepository {
 			.where({ id })
 			.update({ ...payload, updated_at: DateTime.now().toJSDate() })
 			.returning('*');
+	};
+
+	findByUserId = async (userId: string): Promise<IRolePlay[]> => {
+		return knexDb('role_play').where({ userId, isDeleted: false }).orderBy('created_at', 'desc');
+	};
+
+	findByScenarioId = async (scenarioId: string): Promise<IRolePlay> => {
+		return knexDb('role_play').where({ scenarioId, isDeleted: false }).first();
+	};
+
+	findByScenarioIdAndUserId = async (scenarioId: string, userId: string): Promise<IRolePlay> => {
+		return knexDb('role_play').where({ scenarioId, userId, isDeleted: false }).first();
 	};
 
 	findAll = async (): Promise<IRolePlay[]> => {

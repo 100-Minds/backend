@@ -23,6 +23,12 @@ export enum StatusRequest {
 	REJECTED = 'rejected',
 }
 
+export enum QuizDifficulty {
+	Beginner = 'beginner',
+	Intermediate = 'intermediate',
+	Expert = 'expert',
+}
+
 export const TOTPBaseConfig = {
 	issuer: `${ENVIRONMENT.APP.NAME}`,
 	label: `${ENVIRONMENT.APP.NAME}`,
