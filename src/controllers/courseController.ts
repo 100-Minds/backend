@@ -161,7 +161,7 @@ export class CourseController {
 			throw new AppError('Failed to create chapter', 500);
 		}
 
-		const { secureUrl } = await uploadCourseVideo({
+		const { secureUrl, formattedDuration } = await uploadCourseVideo({
 			fileName: `course-videos/${Date.now()}-${file.originalname}`,
 			buffer: file.buffer,
 			mimetype: file.mimetype,
@@ -170,6 +170,7 @@ export class CourseController {
 		const video = await courseRepository.createVideo({
 			chapterId: chapter.id,
 			videoURL: secureUrl,
+			duration: formattedDuration,
 		});
 		if (!video) {
 			throw new AppError('Failed to create lesson video', 500);
@@ -285,7 +286,7 @@ export class CourseController {
 
 		let updatedVideo: ICourseVideo;
 		if (file) {
-			const { secureUrl } = await uploadCourseVideo({
+			const { secureUrl, formattedDuration } = await uploadCourseVideo({
 				fileName: `course-videos/${Date.now()}-${file.originalname}`,
 				buffer: file.buffer,
 				mimetype: file.mimetype,
@@ -293,6 +294,7 @@ export class CourseController {
 
 			const videoUpdates: Partial<ICourseVideo> = {
 				videoURL: secureUrl,
+				duration: formattedDuration,
 			};
 
 			[updatedVideo] = await courseRepository.updateVideo(chapterId, videoUpdates);

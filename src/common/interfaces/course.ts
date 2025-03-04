@@ -22,7 +22,7 @@ export interface ICourseVideo {
 	id: string;
 	chapterId: string;
 	videoURL: string;
-	blurHash: string;
+	duration: string;
 	isDeleted: boolean;
 	created_at?: Date;
 	updated_at?: Date;

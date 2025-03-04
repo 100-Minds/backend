@@ -2,9 +2,12 @@ import { ENVIRONMENT } from '@/common/config';
 import type { IAwsUploadFile } from '@/common/interfaces';
 import AppError from './appError';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { isValidFileNameAwsUpload, isValidPhotoNameAwsUpload } from './helper';
+import { formatDuration, isValidFileNameAwsUpload, isValidPhotoNameAwsUpload } from './helper';
 import { AbortController } from 'abort-controller';
 import sharp from 'sharp';
+import ffmpeg from 'fluent-ffmpeg';
+import ffprobeStatic from 'ffprobe-static';
+import { Readable } from 'stream';
 
 if (
 	!ENVIRONMENT.R2.ACCOUNT_ID ||
@@ -26,7 +29,27 @@ export const r2 = new S3Client({
 	},
 	retryMode: 'standard',
 });
-export const uploadCourseVideo = async (payload: IAwsUploadFile): Promise<{ secureUrl: string }> => {
+
+const getVideoDuration = (buffer: Buffer): Promise<number> => {
+	return new Promise((resolve, reject) => {
+		ffmpeg.setFfprobePath(ffprobeStatic.path);
+		ffmpeg(Readable.from(buffer)).ffprobe((err, metadata) => {
+			if (err) {
+				reject(new Error(`Failed to get video duration: ${err.message}`));
+				return;
+			}
+			const videoStream = metadata.streams.find((stream) => stream.codec_type === 'video');
+			if (!videoStream || !videoStream.duration) {
+				reject(new Error('Could not determine video duration'));
+				return;
+			}
+			resolve(parseFloat(videoStream.duration));
+		});
+	});
+};
+export const uploadCourseVideo = async (
+	payload: IAwsUploadFile
+): Promise<{ secureUrl: string; formattedDuration: string }> => {
 	const { fileName, buffer, mimetype } = payload;
 
 	if (!fileName || !buffer || !mimetype) {
@@ -40,6 +63,14 @@ export const uploadCourseVideo = async (payload: IAwsUploadFile): Promise<{ secu
 
 	if (!isValidFileNameAwsUpload(fileName)) {
 		throw new AppError('Invalid file name or extension', 400);
+	}
+
+	let formattedDuration: string = '';
+	try {
+		const duration = await getVideoDuration(buffer);
+		formattedDuration = formatDuration(duration);
+	} catch (error) {
+		console.log('Could not determine video duration:', error);
 	}
 
 	const uploadParams = {
@@ -67,7 +98,7 @@ export const uploadCourseVideo = async (payload: IAwsUploadFile): Promise<{ secu
 		const secureUrl = `${ENVIRONMENT.R2.CDN_URL}/${fileName}`;
 		console.log('Generated secure URL:', secureUrl);
 
-		return { secureUrl };
+		return { secureUrl, formattedDuration };
 	} catch (error) {
 		if (timeout) clearTimeout(timeout);
 		console.error('Error uploading video to R2:', error);
