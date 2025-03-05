@@ -3,3 +3,4 @@ export * from './scenarioRepository';
 export * from './userRepository';
 export * from './rolePlayRepository';
 export * from './teamRepository';
+export * from './quizRepository';

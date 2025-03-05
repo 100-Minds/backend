@@ -27,7 +27,7 @@ export class RolePlayController {
 			throw new Error('Invalid or deleted scenario ID');
 		}
 
-		const existingRolePlay = await rolePlayRepository.findByScenarioIdAndUserId(scenarioId, user.id);
+		const [existingRolePlay] = await rolePlayRepository.findByScenarioIdAndUserId(scenarioId, user.id);
 		if (existingRolePlay) {
 			const currentSeconds = parseTimeSpent(existingRolePlay.timeSpent);
 			const newSeconds = timeSpent ? parseInt(timeSpent, 10) : 0;
@@ -144,7 +144,7 @@ export class RolePlayController {
 			throw new AppError('Role Play ID is required', 400);
 		}
 
-		const rolePlay = await rolePlayRepository.findByScenarioIdAndUserId(scenarioId as string, user.id);
+		const [rolePlay] = await rolePlayRepository.findByScenarioIdAndUserId(scenarioId as string, user.id);
 		if (!rolePlay || rolePlay.isDeleted) {
 			throw new AppError('Role Play not found or deleted', 404);
 		}

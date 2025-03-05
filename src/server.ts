@@ -15,7 +15,7 @@ import '@/common/interfaces/request';
 import { AppError, logger, stream } from '@/common/utils';
 import { errorHandler } from '@/controllers';
 import { timeoutMiddleware, validateDataWithZod } from '@/middlewares';
-import { userRouter, authRouter, teamRouter, scenarioRouter, courseRouter, rolePlayRouter } from '@/routes';
+import { userRouter, authRouter, teamRouter, scenarioRouter, courseRouter, rolePlayRouter, quizRouter } from '@/routes';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -152,6 +152,7 @@ app.use('/api/v1/team', teamRouter);
 app.use('/api/v1/scenario', scenarioRouter);
 app.use('/api/v1/course', courseRouter);
 app.use('/api/v1/role-play', rolePlayRouter);
+app.use('/api/v1/quiz', quizRouter);
 
 app.all('/{*splat}', async (req, res) => {
 	logger.error('route not found ' + new Date(Date.now()) + ' ' + req.originalUrl);

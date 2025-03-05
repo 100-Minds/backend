@@ -1,3 +1,4 @@
+import { QuizDifficulty } from '@/common/constants';
 import { dateFromString } from '@/common/utils';
 import { z } from 'zod';
 
@@ -53,6 +54,9 @@ export const mainSchema = z.object({
 	isDone: z.boolean(),
 	timeSpent: z.string().min(1),
 	rolePlayId: z.string().min(7),
+	score: z.number().positive(),
+	quizId: z.string().min(7),
+	difficulty: z.enum(Object.values(QuizDifficulty) as [string, ...string[]]),
 	// fundraiser: z.enum([...Object.values(FundraiserEnum)] as [string, ...string[]]),
 	amount: z.number().positive(),
 	// hideMyDetails: z.boolean().default(false),

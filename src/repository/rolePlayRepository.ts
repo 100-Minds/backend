@@ -26,8 +26,8 @@ class RolePlayRepository {
 		return knexDb('role_play').where({ scenarioId, isDeleted: false }).first();
 	};
 
-	findByScenarioIdAndUserId = async (scenarioId: string, userId: string): Promise<IRolePlay> => {
-		return knexDb('role_play').where({ scenarioId, userId, isDeleted: false }).first();
+	findByScenarioIdAndUserId = async (scenarioId: string, userId: string): Promise<IRolePlay[]> => {
+		return knexDb('role_play').where({ scenarioId, userId, isDeleted: false }).select();
 	};
 
 	findAll = async (): Promise<IRolePlay[]> => {

@@ -7,7 +7,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.uuid('userId').notNullable().references('id').inTable('users').onDelete('CASCADE');
 		table.uuid('courseId').nullable().references('id').inTable('course').onDelete('SET NULL');
 		table.integer('score').notNullable();
-		table.enu('difficulty', Object.values(QuizDifficulty)).nullable();
+		table.enum('difficulty', Object.values(QuizDifficulty)).nullable();
 		table.timestamps(true, true);
 	});
 }

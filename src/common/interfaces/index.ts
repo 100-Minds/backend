@@ -9,3 +9,4 @@ export * from './rolePlay';
 export * from './scenario';
 export * from './aws';
 export * from './maxChapter';
+export * from './quiz';

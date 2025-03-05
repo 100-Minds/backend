@@ -4,3 +4,4 @@ export * from './teamRouter';
 export * from './scenarioRouter';
 export * from './courseRouter';
 export * from './rolePlayRouter';
+export * from './quizRouter';
