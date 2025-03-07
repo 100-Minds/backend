@@ -35,6 +35,7 @@ export const ENVIRONMENT: IEnvironment = {
 		SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY!,
 		BUCKET_NAME: process.env.R2_BUCKET_NAME!,
 		CDN_URL: process.env.R2_CDN_URL!,
+		PUBLIC_URL: process.env.R2_PUBLIC_URL!,
 	},
 	REDIS: {
 		URL: process.env.QUEUE_REDIS_URL!,

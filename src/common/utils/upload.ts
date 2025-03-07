@@ -15,7 +15,8 @@ if (
 	!ENVIRONMENT.R2.ACCESS_KEY_ID ||
 	!ENVIRONMENT.R2.SECRET_ACCESS_KEY ||
 	!ENVIRONMENT.R2.BUCKET_NAME ||
-	!ENVIRONMENT.R2.CDN_URL
+	!ENVIRONMENT.R2.CDN_URL ||
+	!ENVIRONMENT.R2.PUBLIC_URL
 ) {
 	throw new Error('R2 environment variables are not set');
 }
@@ -95,7 +96,7 @@ export const uploadCourseVideo = async (
 		console.log('Upload successful, response:', response);
 
 		// Generate secure URL using the CDN
-		const secureUrl = `${ENVIRONMENT.R2.CDN_URL}/${fileName}`;
+		const secureUrl = `${ENVIRONMENT.R2.PUBLIC_URL}/${fileName}`;
 		console.log('Generated secure URL:', secureUrl);
 
 		return { secureUrl, formattedDuration };
@@ -142,7 +143,7 @@ export const uploadPictureFile = async (payload: IAwsUploadFile): Promise<{ secu
 	try {
 		const command = new PutObjectCommand(uploadParams);
 		await r2.send(command);
-		const secureUrl = `${ENVIRONMENT.R2.CDN_URL}/${fileName}`;
+		const secureUrl = `${ENVIRONMENT.R2.PUBLIC_URL}/${fileName}`;
 
 		return { secureUrl };
 	} catch (error) {

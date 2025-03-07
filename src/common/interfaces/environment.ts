@@ -33,6 +33,7 @@ export interface IEnvironment {
 		SECRET_ACCESS_KEY: string;
 		BUCKET_NAME: string;
 		CDN_URL: string;
+		PUBLIC_URL: string;
 	};
 	REDIS: {
 		URL: string;

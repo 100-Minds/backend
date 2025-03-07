@@ -83,20 +83,6 @@ const router = express.Router();
  *                           - user
  *                           - admin
  *                         example: user
- *                       passwordResetToken:
- *                         type: string
- *                         nullable: true
- *                         example: null
- *                       passwordResetExpires:
- *                         type: string
- *                         format: date-time
- *                         nullable: true
- *                         example: null
- *                       passwordChangedAt:
- *                         type: string
- *                         format: date-time
- *                         nullable: true
- *                         example: null
  *                       isSuspended:
  *                         type: boolean
  *                         example: false
@@ -261,20 +247,6 @@ router.post('/sign-up', authController.signUp);
  *                               - user
  *                               - admin
  *                             example: user
- *                           passwordResetToken:
- *                             type: string
- *                             nullable: true
- *                             example: null
- *                           passwordResetExpires:
- *                             type: string
- *                             format: date-time
- *                             nullable: true
- *                             example: null
- *                           passwordChangedAt:
- *                             type: string
- *                             format: date-time
- *                             nullable: true
- *                             example: null
  *                           isSuspended:
  *                             type: boolean
  *                             example: false
@@ -298,9 +270,6 @@ router.post('/sign-up', authController.signUp);
  *                         lastName: Okonkwo
  *                         photo: null
  *                         role: user
- *                         passwordResetToken: null
- *                         passwordResetExpires: null
- *                         passwordChangedAt: null
  *                         isSuspended: false
  *                         isDeleted: false
  *                         created_at: 2025-03-07T00:36:19.842Z
@@ -538,7 +507,7 @@ router.use(protect);
 /**
  * @openapi
  * /auth/sign-out:
- *   post:
+ *   get:
  *     summary: Sign out a user
  *     description: Logs out the authenticated user by clearing the access and refresh tokens from cookies. Requires authentication via a valid access token.
  *     tags:

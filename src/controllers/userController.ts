@@ -17,7 +17,7 @@ export class UserController {
 			throw new AppError('User not found', 404);
 		}
 
-		return AppResponse(res, 200, toJSON(extinguishUser), 'Profile retrieved successfully');
+		return AppResponse(res, 200, toJSON([extinguishUser]), 'Profile retrieved successfully');
 	});
 
 	getAllUsers = catchAsync(async (req: Request, res: Response) => {
@@ -100,10 +100,10 @@ export class UserController {
 			photo: secureUrl,
 		});
 		if (!updateProfile) {
-			throw new AppError('Failed to update profile', 500);
+			throw new AppError('Failed to update profile picture', 500);
 		}
 
-		return AppResponse(res, 200, toJSON(updateProfile), 'Profile updated successfully');
+		return AppResponse(res, 200, toJSON(updateProfile), 'Profile picture updated successfully');
 	});
 }
 
