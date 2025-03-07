@@ -26,6 +26,8 @@ import helmetCsp from 'helmet-csp';
 import hpp from 'hpp';
 import http from 'http';
 import morgan from 'morgan';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './swagger';
 
 dotenv.config();
 /**
@@ -146,6 +148,7 @@ app.use(validateDataWithZod);
 app.use('/api/v1/alive', (req: Request, res: Response) => {
 	res.status(200).json({ status: 'success', message: 'Server is up and running' });
 });
+
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/team', teamRouter);
@@ -153,6 +156,9 @@ app.use('/api/v1/scenario', scenarioRouter);
 app.use('/api/v1/course', courseRouter);
 app.use('/api/v1/role-play', rolePlayRouter);
 app.use('/api/v1/quiz', quizRouter);
+
+// Swagger documentation
+app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.all('/{*splat}', async (req, res) => {
 	logger.error('route not found ' + new Date(Date.now()) + ' ' + req.originalUrl);

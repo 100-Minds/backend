@@ -24,7 +24,7 @@ export class UserController {
 		const { user } = req;
 
 		if (!user) {
-			throw new AppError('Please log in again', 400);
+			throw new AppError('Please log in again', 401);
 		}
 
 		if (user.role !== 'admin') {

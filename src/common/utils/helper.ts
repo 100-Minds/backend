@@ -75,6 +75,7 @@ const toJSON = <T extends object>(obj: T | T[], excludeFields: (keyof T)[] = [])
 		'otp',
 		'passwordResetRetries',
 		'ownerId',
+		'otpExpires'
 	] as (keyof T)[];
 
 	// Use provided exclusions or default ones
