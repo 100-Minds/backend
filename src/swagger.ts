@@ -34,7 +34,7 @@ const options = {
       },
     },
   },
-  apis: ['./src/routes/*.ts'], // Adjust path to where your route files are
+  apis: ['./src/routes/*.ts'],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

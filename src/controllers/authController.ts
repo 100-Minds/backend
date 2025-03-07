@@ -58,7 +58,7 @@ class AuthController {
 		setCookie(req, res, 'accessToken', accessToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.ACCESS));
 		setCookie(req, res, 'refreshToken', refreshToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.REFRESH));
 
-		return AppResponse(res, 201, toJSON(user), 'User created successfully');
+		return AppResponse(res, 201, toJSON([user]), 'User created successfully');
 	});
 
 	signIn = catchAsync(async (req: Request, res: Response) => {
@@ -133,14 +133,14 @@ class AuthController {
 			lastLogin: currentRequestTime.toJSDate(),
 		});
 
-		return AppResponse(res, 200, toJSON(user), 'User logged in successfully');
+		return AppResponse(res, 200, toJSON([user]), 'User logged in successfully');
 	});
 
 	signOut = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 
 		if (!user) {
-			throw new AppError('You are not logged in', 404);
+			throw new AppError('You are not logged in', 401);
 		}
 
 		//clearing the cookies set on the frontend by setting a new cookie with empty values and an expiry time in the past
@@ -207,21 +207,23 @@ class AuthController {
 		if (!token || !password || !confirmPassword) {
 			throw new AppError('All fields are required', 403);
 		}
-
 		if (password !== confirmPassword) {
 			throw new AppError('Passwords do not match', 403);
 		}
 
 		const decodedToken = await verifyToken(token);
-
 		if (!decodedToken.token) {
 			throw new AppError('Invalid token', 401);
 		}
 
 		const user = await userRepository.findByPasswordResetToken(decodedToken.token);
-
 		if (!user) {
 			throw new AppError('Password reset token is invalid or has expired', 400);
+		}
+
+		const isSamePassword = await comparePassword(password, user.password);
+		if (isSamePassword) {
+			throw new AppError('New password cannot be the same as the old password', 400);
 		}
 
 		const hashedPassword = await hashPassword(password);
@@ -233,7 +235,6 @@ class AuthController {
 			passwordResetToken: '',
 			passwordResetExpires: DateTime.now().toJSDate(),
 		});
-
 		if (!updatedUser) {
 			throw new AppError('Password reset failed', 400);
 		}
