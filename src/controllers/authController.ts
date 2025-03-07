@@ -6,6 +6,7 @@ import {
 	comparePassword,
 	createToken,
 	generateAccessToken,
+	generateOtp,
 	generateRandomString,
 	generateRefreshToken,
 	getDomainReferer,
@@ -18,7 +19,6 @@ import {
 import { catchAsync } from '@/middlewares';
 import { ENVIRONMENT } from '@/common/config';
 import { DateTime } from 'luxon';
-import otpGenerator from 'otp-generator';
 
 class AuthController {
 	signUp = catchAsync(async (req: Request, res: Response) => {
@@ -91,13 +91,7 @@ class AuthController {
 		}
 
 		if (!otp) {
-			//take this to the helper function
-			const generatedOtp = otpGenerator.generate(6, {
-				digits: true,
-				upperCaseAlphabets: false,
-				specialChars: false,
-				lowerCaseAlphabets: false,
-			});
+			const generatedOtp = generateOtp();
 			const otpExpires = currentRequestTime.plus({ minutes: 5 }).toJSDate();
 
 			await userRepository.update(user.id, {

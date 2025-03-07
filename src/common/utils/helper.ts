@@ -6,6 +6,7 @@ import { ENVIRONMENT } from '../config';
 import { IHashData } from '../interfaces';
 import type { Response, Request } from 'express';
 import { promisify } from 'util';
+import otpGenerator from 'otp-generator';
 
 const generateRandomString = () => {
 	return randomBytes(32).toString('hex');
@@ -75,7 +76,7 @@ const toJSON = <T extends object>(obj: T | T[], excludeFields: (keyof T)[] = [])
 		'otp',
 		'passwordResetRetries',
 		'ownerId',
-		'otpExpires'
+		'otpExpires',
 	] as (keyof T)[];
 
 	// Use provided exclusions or default ones
@@ -296,25 +297,34 @@ const parseTimeSpent = (timeStr: string): number => {
 };
 
 const formatDuration = (seconds: number): string => {
-    if (seconds < 0) {
-        throw new Error('Duration cannot be negative');
-    }
+	if (seconds < 0) {
+		throw new Error('Duration cannot be negative');
+	}
 
-    const hours = Math.floor(seconds / 3600); // Convert to hours
-    const remainingSeconds = seconds % 3600;
-    const minutes = Math.floor(remainingSeconds / 60); // Convert remaining to minutes
-    const secs = Math.floor(remainingSeconds % 60); // Remaining seconds
+	const hours = Math.floor(seconds / 3600); // Convert to hours
+	const remainingSeconds = seconds % 3600;
+	const minutes = Math.floor(remainingSeconds / 60); // Convert remaining to minutes
+	const secs = Math.floor(remainingSeconds % 60); // Remaining seconds
 
-    if (hours > 0) {
-        // Format as HH:MM:SS (e.g., 01:20:08)
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    } else if (minutes > 0) {
-        // Format as MM:SS (e.g., 20:20)
-        return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    } else {
-        // Format as SS (e.g., 00:30, but ensure at least MM:SS for consistency)
-        return `00:${String(secs).padStart(2, '0')}`;
-    }
+	if (hours > 0) {
+		// Format as HH:MM:SS (e.g., 01:20:08)
+		return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+	} else if (minutes > 0) {
+		// Format as MM:SS (e.g., 20:20)
+		return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+	} else {
+		// Format as SS (e.g., 00:30, but ensure at least MM:SS for consistency)
+		return `00:${String(secs).padStart(2, '0')}`;
+	}
+};
+
+const generateOtp = () => {
+	return otpGenerator.generate(6, {
+		digits: true,
+		upperCaseAlphabets: false,
+		specialChars: false,
+		lowerCaseAlphabets: false,
+	});
 };
 
 export {
@@ -336,5 +346,6 @@ export {
 	getDomainReferer,
 	formatTimeSpent,
 	parseTimeSpent,
-	formatDuration
+	formatDuration,
+	generateOtp,
 };
