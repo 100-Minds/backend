@@ -24,6 +24,7 @@ export interface ITeamInvite {
 	id: string;
 	teamId: string;
 	inviterId: string;
+	inviteeId: string;
 	inviteLink: string;
 	inviteLinkExpires: Date;
 	linkIsUsed: boolean;

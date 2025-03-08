@@ -5,6 +5,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
 		table.uuid('teamId').references('id').inTable('teams').onDelete('CASCADE');
 		table.uuid('inviterId').references('id').inTable('users').onDelete('CASCADE');
+		table.uuid('inviteeId').references('id').inTable('users').onDelete('CASCADE');
 		table.string('inviteLink').notNullable().unique(); // Unique invite link code
 		table.timestamp('inviteLinkExpires');
 		table.boolean('linkIsUsed').defaultTo(false);

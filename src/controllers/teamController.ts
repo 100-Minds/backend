@@ -46,9 +46,10 @@ class TeamController {
 			teamId: team.id,
 			userId: user.id,
 			memberType: MemberType.Owner,
+			statusRequest: StatusRequest.ACCEPTED,
 		});
 
-		return AppResponse(res, 201, toJSON(team), 'Team created successfully');
+		return AppResponse(res, 201, toJSON([team]), 'Team created successfully');
 	});
 
 	getUserTeams = catchAsync(async (req: Request, res: Response) => {
@@ -83,7 +84,7 @@ class TeamController {
 			throw new AppError('Team not found', 404);
 		}
 
-		return AppResponse(res, 200, toJSON(team), 'User teams successfully fetched');
+		return AppResponse(res, 200, toJSON([team]), 'User team successfully fetched');
 	});
 
 	updateTeam = catchAsync(async (req: Request, res: Response) => {
@@ -173,11 +174,9 @@ class TeamController {
 		if (!team) {
 			throw new AppError('Team not found', 404);
 		}
-
 		if (team.ownerId !== user.id) {
 			throw new AppError('You are not authorized to invite to this team', 403);
 		}
-
 		if (team.isDeleted) {
 			throw new AppError('Cannot invite to a deleted team', 400);
 		}
@@ -185,6 +184,9 @@ class TeamController {
 		const invitee = await userRepository.findByEmail(email);
 		if (!invitee) {
 			throw new AppError('Invitee not found', 404);
+		}
+		if (team.ownerId === invitee.id) {
+			throw new AppError('You cannot invite yourself to the team', 400);
 		}
 
 		const inviteLink = await generateRandomString();
@@ -200,15 +202,19 @@ class TeamController {
 		const invite = await teamRepository.createTeamInvite({
 			teamId,
 			inviterId: user.id,
+			inviteeId: invitee.id,
 			inviteLink,
 			inviteLinkExpires: DateTime.now().plus({ days: 7 }).toJSDate(),
 			linkIsUsed: false,
 		});
 
-		await teamRepository.addTeamMember({
-			teamId,
-			userId: invitee.id,
-		});
+		const existingMember = await teamRepository.findByTeamAndUser(teamId, user.id);
+		if (!existingMember) {
+			await teamRepository.addTeamMember({
+				teamId,
+				userId: invitee.id,
+			});
+		}
 
 		const inviteUrl = `${getDomainReferer(req)}/join-team?invite=${hashedInviteLink}`;
 		console.log(inviteUrl);
@@ -221,7 +227,7 @@ class TeamController {
 
 	joinTeam = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { inviteLink } = req.body;
+		const { inviteLink } = req.query;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -231,7 +237,7 @@ class TeamController {
 			throw new AppError('Invite link is required', 400);
 		}
 
-		const decodedTokenLink = await verifyToken(inviteLink);
+		const decodedTokenLink = await verifyToken(inviteLink as string);
 
 		if (!decodedTokenLink.token) {
 			throw new AppError('Invalid token link', 401);
@@ -241,11 +247,12 @@ class TeamController {
 		if (!invite) {
 			throw new AppError('Invalid or expired invite link', 404);
 		}
-
+		if (invite.inviteeId !== user.id) {
+			throw new AppError('You are not authorized to join this team', 403);
+		}
 		if (invite.linkIsUsed) {
 			throw new AppError('Invite link has already been used', 400);
 		}
-
 		if (invite.inviteLinkExpires < DateTime.now().toJSDate()) {
 			throw new AppError('Invite link has expired', 400);
 		}
