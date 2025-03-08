@@ -40,7 +40,7 @@ export class ScenarioController {
 			throw new AppError('Failed to create scenario', 500);
 		}
 
-		return AppResponse(res, 201, toJSON(createScenario), 'Scenario created successfully');
+		return AppResponse(res, 201, toJSON([createScenario]), 'Scenario created successfully');
 	});
 
 	findOne = catchAsync(async (req: Request, res: Response) => {
@@ -49,9 +49,6 @@ export class ScenarioController {
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
-		}
-		if (user.role === 'user') {
-			throw new AppError('Only an admin can view a scenario', 403);
 		}
 
 		if (!scenarioId) {
@@ -63,7 +60,7 @@ export class ScenarioController {
 			throw new AppError('Scenario not found', 404);
 		}
 
-		return AppResponse(res, 200, toJSON(scenario), 'Scenario retrieved successfully');
+		return AppResponse(res, 200, toJSON([scenario]), 'Scenario retrieved successfully');
 	});
 
 	getAllScenarios = catchAsync(async (req: Request, res: Response) => {
@@ -71,9 +68,6 @@ export class ScenarioController {
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
-		}
-		if (user.role === 'user') {
-			throw new AppError('Only an admin can view scenarios', 403);
 		}
 
 		const scenarios = await scenarioRepository.findAll();
