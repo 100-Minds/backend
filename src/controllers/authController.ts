@@ -12,6 +12,9 @@ import {
 	getDomainReferer,
 	hashPassword,
 	parseTokenDuration,
+	sendForgotPasswordEmail,
+	sendLoginEmail,
+	sendResetPasswordEmail,
 	setCookie,
 	toJSON,
 	verifyToken,
@@ -99,8 +102,7 @@ class AuthController {
 				otpExpires,
 			});
 
-			// Send OTP to the user
-			//await sendOtpEmail(user.email, generatedOtp);
+			await sendLoginEmail(user.email, user.firstName, generatedOtp);
 
 			return AppResponse(res, 200, null, 'OTP sent to your email. Please verify to complete sign-in.');
 		}
@@ -173,7 +175,6 @@ class AuthController {
 		);
 
 		const passwordResetUrl = `${getDomainReferer(req)}/reset-password?token=${hashedPasswordResetToken}`;
-		console.log(passwordResetUrl);
 
 		await userRepository.update(user.id, {
 			passwordResetToken: passwordResetToken,
@@ -181,16 +182,7 @@ class AuthController {
 			passwordResetRetries: user.passwordResetRetries + 1,
 		});
 
-		// add email to queue
-		// addEmailToQueue({
-		// 	type: 'forgotPassword',
-		// 	data: {
-		// 		to: email,
-		// 		priority: 'high',
-		// 		name: user.firstName,
-		// 		token: passwordResetUrl,
-		// 	},
-		// });
+		await sendForgotPasswordEmail(user.email, user.firstName, passwordResetUrl);
 
 		return AppResponse(res, 200, null, `Password reset link sent to ${email}`);
 	});
@@ -233,14 +225,7 @@ class AuthController {
 			throw new AppError('Password reset failed', 400);
 		}
 
-		// send password reset complete email
-		// addEmailToQueue({
-		// 	type: 'resetPassword',
-		// 	data: {
-		// 		to: user.email,
-		// 		priority: 'high',
-		// 	},
-		// });
+		await sendResetPasswordEmail(user.email, user.firstName);
 
 		return AppResponse(res, 200, null, 'Password reset successfully');
 	});

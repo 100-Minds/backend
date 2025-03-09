@@ -3,10 +3,19 @@ import { randomBytes, randomInt } from 'crypto';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { encode } from 'hi-base32';
 import { ENVIRONMENT } from '../config';
-import { IHashData } from '../interfaces';
+import {
+	ForgotPasswordData,
+	IHashData,
+	LoginEmailData,
+	RemoveTeamMemberData,
+	ResetPasswordData,
+	TeamInvitationData,
+	TeamInvitationSuccessData,
+} from '../interfaces';
 import type { Response, Request } from 'express';
 import { promisify } from 'util';
 import otpGenerator from 'otp-generator';
+import { addEmailToQueue } from '@/queues';
 
 const generateRandomString = () => {
 	return randomBytes(32).toString('hex');
@@ -330,6 +339,109 @@ const generateOtp = () => {
 	});
 };
 
+const sendLoginEmail = async (email: string, name: string, otp: string): Promise<void> => {
+	const emailData: LoginEmailData = {
+		to: email,
+		priority: 'high',
+		name,
+		otp,
+	};
+
+	addEmailToQueue({
+		type: 'loginEmail',
+		data: emailData,
+	});
+};
+
+const sendForgotPasswordEmail = async (email: string, name: string, resetLink: string): Promise<void> => {
+	const emailData: ForgotPasswordData = {
+		to: email,
+		priority: 'high',
+		name,
+		resetLink,
+	};
+
+	addEmailToQueue({
+		type: 'forgotPassword',
+		data: emailData,
+	});
+};
+
+const sendResetPasswordEmail = async (email: string, name: string): Promise<void> => {
+	const emailData: ResetPasswordData = {
+		to: email,
+		priority: 'high',
+		name,
+	};
+
+	addEmailToQueue({
+		type: 'resetPassword',
+		data: emailData,
+	});
+};
+
+const sendTeamInviteEmail = async (
+	email: string,
+	inviterName: string,
+	inviteeName: string,
+	teamName: string,
+	inviteLink: string
+): Promise<void> => {
+	const emailData: TeamInvitationData = {
+		to: email,
+		priority: 'high',
+		inviterName,
+		inviteeName,
+		teamName,
+		inviteLink,
+	};
+
+	addEmailToQueue({
+		type: 'teamInvitation',
+		data: emailData,
+	});
+};
+
+const sendTeamInviteSuccessEmail = async (
+	email: string,
+	inviterName: string,
+	inviteeName: string,
+	teamName: string
+): Promise<void> => {
+	const emailData: TeamInvitationSuccessData = {
+		to: email,
+		priority: 'high',
+		inviterName,
+		inviteeName,
+		teamName,
+	};
+
+	addEmailToQueue({
+		type: 'teamInvitationSuccess',
+		data: emailData,
+	});
+};
+
+const removeTeamMemberEmail = async (
+	email: string,
+	adminName: string,
+	removedMemberName: string,
+	teamName: string
+): Promise<void> => {
+	const emailData: RemoveTeamMemberData = {
+		to: email,
+		priority: 'medium',
+		adminName,
+		removedMemberName,
+		teamName,
+	};
+
+	addEmailToQueue({
+		type: 'removeTeamMember',
+		data: emailData,
+	});
+};
+
 export {
 	dateFromString,
 	generateRandom6DigitKey,
@@ -351,4 +463,10 @@ export {
 	parseTimeSpent,
 	formatDuration,
 	generateOtp,
+	sendLoginEmail,
+	sendResetPasswordEmail,
+	sendForgotPasswordEmail,
+	sendTeamInviteEmail,
+	sendTeamInviteSuccessEmail,
+	removeTeamMemberEmail,
 };

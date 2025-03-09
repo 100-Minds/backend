@@ -7,6 +7,9 @@ import {
 	generateRandomString,
 	getDomainReferer,
 	verifyToken,
+	sendTeamInviteEmail,
+	sendTeamInviteSuccessEmail,
+	removeTeamMemberEmail,
 } from '@/common/utils';
 import { teamRepository } from '@/repository';
 import { catchAsync } from '@/middlewares';
@@ -197,7 +200,7 @@ class TeamController {
 			{ expiresIn: '7d' }
 		);
 
-		console.log(hashedInviteLink);
+		//console.log(hashedInviteLink);
 
 		const invite = await teamRepository.createTeamInvite({
 			teamId,
@@ -208,7 +211,7 @@ class TeamController {
 			linkIsUsed: false,
 		});
 
-		const existingMember = await teamRepository.findByTeamAndUser(teamId, user.id);
+		const existingMember = await teamRepository.findByTeamAndUser(teamId, invitee.id);
 		if (!existingMember) {
 			await teamRepository.addTeamMember({
 				teamId,
@@ -217,10 +220,8 @@ class TeamController {
 		}
 
 		const inviteUrl = `${getDomainReferer(req)}/join-team?invite=${hashedInviteLink}`;
-		console.log(inviteUrl);
-
-		// Send invite URL (e.g., via email or return in response)
-		// await sendInviteEmail(email, user.firstName, inviteUrl);
+		//console.log(inviteUrl);
+		await sendTeamInviteEmail(email, user.firstName, invitee.firstName, team.name, inviteUrl);
 
 		return AppResponse(res, 201, toJSON(invite), `Invite link sent to ${email}`);
 	});
@@ -262,6 +263,12 @@ class TeamController {
 			throw new AppError('Team not found or deleted', 404);
 		}
 
+		//just for emailing
+		const teamOwner = await userRepository.findById(team.ownerId);
+		if (!teamOwner) {
+			throw new AppError('Team owner not found', 404);
+		}
+
 		const existingMember = await teamRepository.findByTeamAndUser(invite.teamId, user.id);
 		if (!existingMember) {
 			throw new AppError('Team member not found', 404);
@@ -275,6 +282,8 @@ class TeamController {
 			statusRequest: StatusRequest.ACCEPTED,
 		});
 		await teamRepository.updateInvitationRequest(invite.id, { linkIsUsed: true });
+
+		await sendTeamInviteSuccessEmail(user.email, teamOwner.firstName, user.firstName, team.name);
 
 		return AppResponse(res, 200, null, 'You have successfully joined the team');
 	});
@@ -295,6 +304,11 @@ class TeamController {
 			throw new AppError('Team ID and Member ID are required', 400);
 		}
 
+		const invitee = await userRepository.findById(memberId);
+		if (!invitee) {
+			throw new AppError('User not found', 404);
+		}
+
 		const team = await teamRepository.getTeam(teamId);
 		if (!team || team.isDeleted) {
 			throw new AppError('Team not found or deleted', 404);
@@ -310,6 +324,8 @@ class TeamController {
 		}
 
 		await teamRepository.updateTeamMember(teamId, member.userId, { isDeleted: true });
+
+		await removeTeamMemberEmail(invitee.email, user.firstName, invitee.firstName, team.name);
 
 		return AppResponse(res, 200, null, 'Team member removed successfully');
 	});

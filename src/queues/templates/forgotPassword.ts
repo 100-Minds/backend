@@ -1,10 +1,11 @@
 import { baseTemplate } from './baseTemplate';
 
-export const loginEmail = (data: { name: string; otp: string }) => {
+export const forgotPasswordEmail = (data: { name: string; resetLink: string }) => {
 	return baseTemplate(
 		`<h2>Hello, ${data.name}!</h2>
         <p>
-            We received a request to log in to your 100minds account. To proceed, please use the One-Time Password (OTP) below:
+            We received a request to reset your password for your 100minds account.
+            Click the button below to set a new password:
         </p>
 
         <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0">
@@ -16,9 +17,9 @@ export const loginEmail = (data: { name: string; otp: string }) => {
                     <table border="0" cellspacing="0" cellpadding="0">
                         <tr>
                             <td>
-                                <span style="font-size: 22px; font-weight: bold;">
-                                    ${data.otp}
-                                </span>
+                                <a href="${data.resetLink}" class="button" style="background-color:rgb(112, 232, 224); border-radius: 20px; color: #163300; display: inline-block; text-decoration: none; padding: 12px 30px; font-size: 16px;">
+                                    Reset Password
+                                </a>
                             </td>
                         </tr>
                     </table>
@@ -30,7 +31,7 @@ export const loginEmail = (data: { name: string; otp: string }) => {
         </table>
 
         <p>
-            This OTP is valid for *5 minutes*. If you did not attempt to log in, please ignore this email or contact our support team immediately.
+            This link is valid for <strong>15 minutes</strong>. If you did not request a password reset, please ignore this email or contact our support team immediately.
         </p>
 
         <p>Thanks,<br />The 100minds Team</p>`

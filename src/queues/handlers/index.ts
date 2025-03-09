@@ -1,11 +1,23 @@
 import {
 	EmailJobData,
 	LoginEmailData,
+	ResetPasswordData,
+	ForgotPasswordData,
+	TeamInvitationData,
+	TeamInvitationSuccessData,
+	RemoveTeamMemberData,
 } from '@/common/interfaces';
 import { logger } from '@/common/utils';
 import nodemailer from 'nodemailer';
 import { ENVIRONMENT } from 'src/common/config';
-import { loginEmail } from '../templates';
+import {
+	forgotPasswordEmail,
+	loginEmail,
+	removeTeamMemberEmail,
+	resetPasswordEmail,
+	teamInviteEmail,
+	teamInviteSuccessEmail,
+} from '../templates';
 
 const transporter = nodemailer.createTransport({
 	service: 'gmail',
@@ -25,6 +37,26 @@ export const sendEmail = async (job: EmailJobData) => {
 		case 'loginEmail':
 			htmlContent = loginEmail(data as LoginEmailData);
 			subject = 'Login Alert';
+			break;
+		case 'forgotPassword':
+			htmlContent = forgotPasswordEmail(data as ForgotPasswordData);
+			subject = 'Forgot Password';
+			break;
+		case 'resetPassword':
+			htmlContent = resetPasswordEmail(data as ResetPasswordData);
+			subject = 'Reset Password';
+			break;
+		case 'teamInvitation':
+			htmlContent = teamInviteEmail(data as TeamInvitationData);
+			subject = 'Team Invitation';
+			break;
+		case 'teamInvitationSuccess':
+			htmlContent = teamInviteSuccessEmail(data as TeamInvitationSuccessData);
+			subject = 'Team Invitation Success';
+			break;
+		case 'removeTeamMember':
+			htmlContent = removeTeamMemberEmail(data as RemoveTeamMemberData);
+			subject = 'Team Eviction';
 			break;
 		// Handle other email types...
 		default:

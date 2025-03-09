@@ -1,10 +1,10 @@
 import { baseTemplate } from './baseTemplate';
 
-export const loginEmail = (data: { name: string; otp: string }) => {
+export const teamInviteSuccessEmail = (data: { inviterName: string; inviteeName: string; teamName: string }) => {
 	return baseTemplate(
-		`<h2>Hello, ${data.name}!</h2>
+		`<h2>Hello, ${data.inviteeName}!</h2>
         <p>
-            We received a request to log in to your 100minds account. To proceed, please use the One-Time Password (OTP) below:
+            Congratulations! You have successfully joined the team <strong>${data.teamName}</strong> on 100minds.
         </p>
 
         <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0">
@@ -17,7 +17,7 @@ export const loginEmail = (data: { name: string; otp: string }) => {
                         <tr>
                             <td>
                                 <span style="font-size: 22px; font-weight: bold;">
-                                    ${data.otp}
+                                    Welcome to the team!
                                 </span>
                             </td>
                         </tr>
@@ -30,7 +30,11 @@ export const loginEmail = (data: { name: string; otp: string }) => {
         </table>
 
         <p>
-            This OTP is valid for *5 minutes*. If you did not attempt to log in, please ignore this email or contact our support team immediately.
+            <strong>${data.inviterName}</strong> invited you to join this team, and now you can start collaborating with your teammates.
+        </p>
+
+        <p>
+            To get started, log in to your account and explore your team's resources.
         </p>
 
         <p>Thanks,<br />The 100minds Team</p>`
