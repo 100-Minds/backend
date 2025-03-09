@@ -11,12 +11,12 @@ const knexConfig: Knex.Config = {
 		port: ENVIRONMENT.DB.PORT ? parseInt(ENVIRONMENT.DB.PORT, 10) : 5432,
 		//ssl: ENVIRONMENT.DB.SSL ? { rejectUnauthorized: false } : false,
 	},
-	pool: { min: 0, max: 7 },
+	pool: { min: 2, max: 10, propagateCreateError: false },
 	migrations: {
 		tableName: 'knex_migrations',
 		directory: './src/migrations', 
 	},
-	acquireConnectionTimeout: 3000
+	acquireConnectionTimeout: 3000,
 };
 
 export const knexDb = knex(knexConfig);

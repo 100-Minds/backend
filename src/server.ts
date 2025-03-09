@@ -28,6 +28,7 @@ import http from 'http';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger';
+import { startAllQueuesAndWorkers, stopAllQueuesAndWorkers } from './queues';
 
 dotenv.config();
 /**
@@ -180,6 +181,10 @@ const server = http.createServer(app);
 
 const appServer = server.listen(port, async () => {
 	await connectDb();
+	//await connectRedis();
+	(async () => {
+		await startAllQueuesAndWorkers();
+	})();
 	console.log(`==> App ${appName ? `: ${appName}` : ''} is running on port ${port}`);
 });
 
@@ -204,6 +209,8 @@ process.on('unhandledRejection', async (error: Error) => {
 async function shutdown() {
 	console.log('Shutting down...');
 	await disconnectDb();
+	//await disconnectRedis();
+	await stopAllQueuesAndWorkers();
 	process.exit(0);
 }
 

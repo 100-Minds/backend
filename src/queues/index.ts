@@ -1,12 +1,12 @@
-// import { startEmailQueue, stopEmailQueue } from './emailQueue';
+import { startEmailQueue, stopEmailQueue } from './emailQueue';
 
-// const startAllQueuesAndWorkers = async () => {
-// 	await startEmailQueue();
-// };
+const startAllQueuesAndWorkers = async () => {
+	await startEmailQueue();
+};
 
-// const stopAllQueuesAndWorkers = async () => {
-// 	await stopEmailQueue();
-// };
+const stopAllQueuesAndWorkers = async () => {
+	await stopEmailQueue();
+};
 
-// export * from './emailQueue';
-// export { startAllQueuesAndWorkers, stopAllQueuesAndWorkers };
+export * from './emailQueue';
+export { startAllQueuesAndWorkers, stopAllQueuesAndWorkers };
