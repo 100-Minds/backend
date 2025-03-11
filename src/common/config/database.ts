@@ -10,13 +10,14 @@ const knexConfig: Knex.Config = {
 		database: ENVIRONMENT.DB.DATABASE,
 		port: ENVIRONMENT.DB.PORT ? parseInt(ENVIRONMENT.DB.PORT, 10) : 5432,
 		//ssl: ENVIRONMENT.DB.SSL ? { rejectUnauthorized: false } : false,
+		ssl: { rejectUnauthorized: true },
 	},
-	pool: { min: 2, max: 10, propagateCreateError: false },
+	pool: { min: 1, max: 5 },
 	migrations: {
 		tableName: 'knex_migrations',
-		directory: './src/migrations', 
+		directory: './src/migrations',
 	},
-	acquireConnectionTimeout: 3000,
+	acquireConnectionTimeout: 5000
 };
 
 export const knexDb = knex(knexConfig);
@@ -24,7 +25,7 @@ export const knexDb = knex(knexConfig);
 const DB_NAME = ENVIRONMENT.DB.DATABASE;
 export const connectDb = async (): Promise<void> => {
 	try {
-		await knexDb.raw('SELECT 1')
+		await knexDb.raw('SELECT 1');
 		console.log(`Database connected successfully to ${DB_NAME}`);
 	} catch (error) {
 		console.error('Error connecting to the database: ' + (error as Error).message);
