@@ -1,7 +1,6 @@
 import { courseController } from '@/controllers';
 import { protect } from '@/middlewares/protect';
 import express from 'express';
-import { multerUpload } from '@/common/config';
 
 const router = express.Router();
 
@@ -16,7 +15,7 @@ router.post('/delete-course', courseController.deleteCourse);
 router.get('/get-lesson', courseController.getCourseLesson);
 router.get('/get-lessons', courseController.getCourseLessons);
 router.post('/create-lesson', courseController.createLesson);
-router.post('/update-lesson', multerUpload.single('video'), courseController.updateLesson);
+router.post('/update-lesson', courseController.updateLesson);
 router.post('/video-uploaded', courseController.videoUploaded);
 
 // //chapter routes
