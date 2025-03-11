@@ -1,5 +1,12 @@
 import { Request, Response } from 'express';
-import { AppError, AppResponse, generatePresignedUrl, toJSON } from '@/common/utils';
+import {
+	AppError,
+	AppResponse,
+	generatePresignedUrl,
+	toJSON,
+	videoUploadFailedEmail,
+	videoUploadSuccessfulEmail,
+} from '@/common/utils';
 import { catchAsync } from '@/middlewares';
 import { courseRepository } from '@/repository';
 import { VideoUploadStatus } from '@/common/constants';
@@ -260,7 +267,7 @@ export class CourseController {
 		}
 
 		if (user.role === 'user') {
-			throw new AppError('Only an admin can update a chapter', 403);
+			throw new AppError('Only an admin can update a lesson', 403);
 		}
 
 		if (!chapterId) {
@@ -303,7 +310,16 @@ export class CourseController {
 	});
 
 	videoUploaded = catchAsync(async (req: Request, res: Response) => {
-		const { key } = req.body;
+		const { user } = req;
+		const { key, videoUploadStatus } = req.body;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+
+		if (user.role === 'user') {
+			throw new AppError('Only an admin can update an uploaded video', 403);
+		}
 
 		if (!key) {
 			throw new AppError('Video key is required', 400);
@@ -320,9 +336,22 @@ export class CourseController {
 			throw new AppError('Video upload failed', 500);
 		}
 
+		const chapter = await courseRepository.getChapter(video.chapterId);
+		if (!chapter) {
+			throw new AppError('Chapter not found', 404);
+		}
+
+		const course = await courseRepository.getCourse(chapter.courseId);
+		if (!course) {
+			throw new AppError('Course not found', 404);
+		}
+
 		await courseRepository.updateVideo(video.id, {
-			uploadStatus: VideoUploadStatus.COMPLETED,
+			uploadStatus: videoUploadStatus === 'completed' ? VideoUploadStatus.COMPLETED : VideoUploadStatus.FAILED,
 		});
+		videoUploadStatus === 'completed'
+			? await videoUploadSuccessfulEmail(user.email, chapter.chapterNumber, course.name)
+			: await videoUploadFailedEmail(user.email, chapter.chapterNumber, course.name);
 
 		return AppResponse(res, 200, null, 'Video upload confirmed');
 	});

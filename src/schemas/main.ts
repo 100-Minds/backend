@@ -62,6 +62,7 @@ export const mainSchema = z.object({
 	fileSize: z.number(),
 	videoLength: z.string(),
 	key: z.string(),
+	videoUploadStatus: z.string(),
 	// fundraiser: z.enum([...Object.values(FundraiserEnum)] as [string, ...string[]]),
 	amount: z.number().positive(),
 	// hideMyDetails: z.boolean().default(false),

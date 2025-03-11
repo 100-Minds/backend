@@ -35,10 +35,22 @@ export interface RemoveTeamMemberData extends CommonDataFields {
 	teamName: string;
 }
 
+export interface VideoUploadSuccessData extends CommonDataFields {
+	chapterNumber: number;
+	courseName: string
+}
+
+export interface VideoUploadFailedData extends CommonDataFields {
+	chapterNumber: number;
+	courseName: string
+}
+
 export type EmailJobData =
 	| { type: 'loginEmail'; data: LoginEmailData }
 	| { type: 'forgotPassword'; data: ForgotPasswordData }
 	| { type: 'resetPassword'; data: ResetPasswordData }
 	| { type: 'teamInvitation'; data: TeamInvitationData }
 	| { type: 'teamInvitationSuccess'; data: TeamInvitationSuccessData }
-	| { type: 'removeTeamMember'; data: RemoveTeamMemberData };
+	| { type: 'removeTeamMember'; data: RemoveTeamMemberData }
+	| { type: 'videoUploadSuccess'; data: VideoUploadSuccessData }
+	| { type: 'videoUploadFailed'; data: VideoUploadFailedData };

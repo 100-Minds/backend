@@ -5,3 +5,5 @@ export * from './resetPassword';
 export * from './teamInvite';
 export * from './teamInviteSuccess';
 export * from './removeMember';
+export * from './videoUploadSuccess';
+export * from './videoUploadFailed';

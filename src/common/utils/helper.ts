@@ -11,6 +11,8 @@ import {
 	ResetPasswordData,
 	TeamInvitationData,
 	TeamInvitationSuccessData,
+	VideoUploadFailedData,
+	VideoUploadSuccessData,
 } from '../interfaces';
 import type { Response, Request } from 'express';
 import { promisify } from 'util';
@@ -442,6 +444,34 @@ const removeTeamMemberEmail = async (
 	});
 };
 
+const videoUploadSuccessfulEmail = async (email: string, chapterNumber: number, courseName: string): Promise<void> => {
+	const emailData: VideoUploadSuccessData = {
+		to: email,
+		priority: 'high',
+		chapterNumber,
+		courseName,
+	};
+
+	addEmailToQueue({
+		type: 'videoUploadSuccess',
+		data: emailData,
+	});
+};
+
+const videoUploadFailedEmail = async (email: string, chapterNumber: number, courseName: string): Promise<void> => {
+	const emailData: VideoUploadFailedData = {
+		to: email,
+		priority: 'high',
+		chapterNumber,
+		courseName,
+	};
+
+	addEmailToQueue({
+		type: 'videoUploadFailed',
+		data: emailData,
+	});
+};
+
 export {
 	dateFromString,
 	generateRandom6DigitKey,
@@ -469,4 +499,6 @@ export {
 	sendTeamInviteEmail,
 	sendTeamInviteSuccessEmail,
 	removeTeamMemberEmail,
+	videoUploadSuccessfulEmail,
+	videoUploadFailedEmail,
 };

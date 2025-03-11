@@ -6,6 +6,8 @@ import {
 	TeamInvitationData,
 	TeamInvitationSuccessData,
 	RemoveTeamMemberData,
+	VideoUploadSuccessData,
+	VideoUploadFailedData,
 } from '@/common/interfaces';
 import { logger } from '@/common/utils';
 import nodemailer from 'nodemailer';
@@ -17,6 +19,8 @@ import {
 	resetPasswordEmail,
 	teamInviteEmail,
 	teamInviteSuccessEmail,
+	videoUploadFailedEmail,
+	videoUploadSuccessEmail,
 } from '../templates';
 
 const transporter = nodemailer.createTransport({
@@ -57,6 +61,14 @@ export const sendEmail = async (job: EmailJobData) => {
 		case 'removeTeamMember':
 			htmlContent = removeTeamMemberEmail(data as RemoveTeamMemberData);
 			subject = 'Team Eviction';
+			break;
+		case 'videoUploadSuccess':
+			htmlContent = videoUploadSuccessEmail(data as VideoUploadSuccessData);
+			subject = 'Video Upload Success';
+			break;
+		case 'videoUploadFailed':
+			htmlContent = videoUploadFailedEmail(data as VideoUploadFailedData);
+			subject = 'Video Upload Failed';
 			break;
 		// Handle other email types...
 		default:
