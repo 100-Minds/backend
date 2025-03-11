@@ -12,10 +12,10 @@ const options = {
 		servers: [
 			{
 				url:
-					process.env.NODE_ENV === 'production'
+					ENVIRONMENT.APP.ENV === 'production'
 						? 'https://backend-5781.onrender.com/api/v1'
 						: `http://localhost:${ENVIRONMENT.APP.PORT || 3000}/api/v1`,
-				description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
+				description: ENVIRONMENT.APP.ENV === 'production' ? 'Production server' : 'Development server',
 			},
 		],
 		components: {

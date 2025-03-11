@@ -15,8 +15,9 @@ router.post('/delete-course', courseController.deleteCourse);
 //lesson route
 router.get('/get-lesson', courseController.getCourseLesson);
 router.get('/get-lessons', courseController.getCourseLessons);
-router.post('/create-lesson', multerUpload.single('video'), courseController.createLesson);
+router.post('/create-lesson', courseController.createLesson);
 router.post('/update-lesson', multerUpload.single('video'), courseController.updateLesson);
+router.post('/video-uploaded', courseController.videoUploaded);
 
 // //chapter routes
 // router.get('/get-chapter', courseController.getChapter);

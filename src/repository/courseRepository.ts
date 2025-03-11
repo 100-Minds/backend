@@ -85,16 +85,20 @@ class CourseRepository {
 		return result.length ? result[0] : null;
 	};
 
-    getVideoByChapterId = async (chapterId: string): Promise<ICourseVideo | null> => {
-        const result = await knexDb.table('course_videos').where({ chapterId }).select('*');
-        return result.length ? result[0] : null;
-    }
+	getVideoByChapterId = async (chapterId: string): Promise<ICourseVideo | null> => {
+		const result = await knexDb.table('course_videos').where({ chapterId }).select('*');
+		return result.length ? result[0] : null;
+	};
 
 	updateVideo = async (chapterId: string, payload: Partial<ICourseVideo>): Promise<ICourseVideo[]> => {
 		return await knexDb('course_videos')
 			.where({ chapterId })
 			.update({ ...payload, updated_at: DateTime.now().toJSDate() })
 			.returning('*');
+	};
+
+	getVideoByKey = async (key: string) => {
+		return await knexDb('course_videos').where({ videoURL: key }).first();
 	};
 
 	//lesson

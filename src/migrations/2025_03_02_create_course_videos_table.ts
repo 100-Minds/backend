@@ -1,3 +1,4 @@
+import { VideoUploadStatus } from '@/common/constants';
 import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
@@ -7,6 +8,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.boolean('isDeleted').defaultTo(false);
 		table.string('duration').notNullable();
 		table.uuid('chapterId').references('id').inTable('course_chapters').onDelete('CASCADE').notNullable();
+		table.enum('uploadStatus', Object.values(VideoUploadStatus)).defaultTo(VideoUploadStatus.PROCESSING);
 		table.timestamps(true, true);
 	});
 }

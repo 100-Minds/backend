@@ -1,5 +1,3 @@
-import { ENVIRONMENT } from '../config';
-
 /**
  * App wide constants go here
  *
@@ -29,9 +27,8 @@ export enum QuizDifficulty {
 	Expert = 'expert',
 }
 
-export const TOTPBaseConfig = {
-	issuer: `${ENVIRONMENT.APP.NAME}`,
-	label: `${ENVIRONMENT.APP.NAME}`,
-	algorithm: 'SHA1',
-	digits: 6,
-};
+export enum VideoUploadStatus {
+	PROCESSING = 'processing',
+	COMPLETED = 'completed',
+	FAILED = 'failed',
+}

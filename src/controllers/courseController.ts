@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
-import { AppError, AppResponse, toJSON, uploadCourseVideo } from '@/common/utils';
+import { AppError, AppResponse, generatePresignedUrl, toJSON } from '@/common/utils';
 import { catchAsync } from '@/middlewares';
 import { courseRepository } from '@/repository';
-import { ICourseVideo } from '@/common/interfaces';
+import { VideoUploadStatus } from '@/common/constants';
+import { ENVIRONMENT } from '@/common/config';
 
 export class CourseController {
 	createCourse = catchAsync(async (req: Request, res: Response) => {
@@ -13,15 +14,15 @@ export class CourseController {
 			throw new AppError('Please log in again', 400);
 		}
 		if (user.role === 'user') {
-			throw new AppError('Only an admin can create a team', 403);
+			throw new AppError('Only an admin can create a course', 403);
 		}
 
 		if (!name) {
 			throw new AppError('Course name is required', 400);
 		}
 
-		const extinguishTeam = await courseRepository.getCourseByName(user.id, name);
-		if (extinguishTeam) {
+		const extinguishCourse = await courseRepository.getCourseByName(user.id, name);
+		if (extinguishCourse) {
 			throw new AppError('Course name exist already', 400);
 		}
 
@@ -126,8 +127,7 @@ export class CourseController {
 
 	createLesson = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { title, courseId } = req.body;
-		const { file } = req;
+		const { title, courseId, fileName, fileType, fileSize, videoLength } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -137,8 +137,8 @@ export class CourseController {
 			throw new AppError('Only an admin can create a chapter', 403);
 		}
 
-		if (!courseId || !title || !file) {
-			throw new AppError('CourseId, courseTitle and video file is required', 400);
+		if (!courseId || !title || !fileName || !fileType || !fileSize || !videoLength) {
+			throw new AppError('CourseId, title, fileName, fileType, fileSize and videoLength are required', 400);
 		}
 
 		const course = await courseRepository.getCourse(courseId);
@@ -161,22 +161,20 @@ export class CourseController {
 			throw new AppError('Failed to create chapter', 500);
 		}
 
-		const { secureUrl, formattedDuration } = await uploadCourseVideo({
-			fileName: `course-videos/${Date.now()}-${file.originalname}`,
-			buffer: file.buffer,
-			mimetype: file.mimetype,
-		});
+		// Generate pre-signed URL
+		const { signedUrl, key } = await generatePresignedUrl(fileName, fileType, fileSize);
 
-		const video = await courseRepository.createVideo({
+		const [video] = await courseRepository.createVideo({
 			chapterId: chapter.id,
-			videoURL: secureUrl,
-			duration: formattedDuration,
+			videoURL: `${ENVIRONMENT.R2.PUBLIC_URL}/${key}`,
+			duration: videoLength,
+			uploadStatus: VideoUploadStatus.PROCESSING,
 		});
 		if (!video) {
-			throw new AppError('Failed to create lesson video', 500);
+			throw new AppError('Failed to store video metadata', 500);
 		}
 
-		return AppResponse(res, 201, null, 'Lesson created successfully');
+		return AppResponse(res, 201, { signedUrl, key }, 'Lesson created successfully, use the signed URL to upload.');
 	});
 
 	getCourseLessons = catchAsync(async (req: Request, res: Response) => {
@@ -255,8 +253,7 @@ export class CourseController {
 
 	updateLesson = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { title, chapterId } = req.body;
-		const { file } = req;
+		const { title, chapterId, fileName, fileType, fileSize, videoLength } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -279,32 +276,153 @@ export class CourseController {
 			throw new AppError('Chapter has already been deleted', 400);
 		}
 
-		const updatedChapter = await courseRepository.updateChapter(chapterId, { title });
-		if (!updatedChapter) {
-			throw new AppError('Failed to update chapter', 500);
+		if (title) {
+			const updatedChapter = await courseRepository.updateChapter(chapterId, { title });
+			if (!updatedChapter) {
+				throw new AppError('Failed to update chapter', 500);
+			}
 		}
 
-		let updatedVideo: ICourseVideo;
-		if (file) {
-			const { secureUrl, formattedDuration } = await uploadCourseVideo({
-				fileName: `course-videos/${Date.now()}-${file.originalname}`,
-				buffer: file.buffer,
-				mimetype: file.mimetype,
-			});
+		let signedUrl: string | undefined, key: string | undefined;
+		if (fileName && fileType && fileSize && videoLength) {
+			({ signedUrl, key } = await generatePresignedUrl(fileName, fileType, fileSize));
 
-			const videoUpdates: Partial<ICourseVideo> = {
-				videoURL: secureUrl,
-				duration: formattedDuration,
+			const videoUpdates = {
+				videoURL: `${ENVIRONMENT.R2.PUBLIC_URL}/${key}`,
+				duration: videoLength,
+				uploadStatus: VideoUploadStatus.PROCESSING,
 			};
 
-			[updatedVideo] = await courseRepository.updateVideo(chapterId, videoUpdates);
+			const updatedVideo = await courseRepository.updateVideo(chapterId, videoUpdates);
 			if (!updatedVideo) {
 				throw new AppError('Failed to update lesson video', 500);
 			}
 		}
 
-		return AppResponse(res, 200, null, 'Chapter updated successfully');
+		return AppResponse(res, 200, signedUrl ? { signedUrl, key } : null, 'Lesson updated successfully.');
+	});
+
+	videoUploaded = catchAsync(async (req: Request, res: Response) => {
+		const { key } = req.body;
+
+		if (!key) {
+			throw new AppError('Video key is required', 400);
+		}
+
+		const video = await courseRepository.getVideoByKey(`${ENVIRONMENT.R2.PUBLIC_URL}/${key}`);
+		if (!video) {
+			throw new AppError('Video not found', 404);
+		}
+		if (video.uploadStatus === VideoUploadStatus.COMPLETED) {
+			throw new AppError('Video has already been uploaded', 400);
+		}
+		if (video.uploadStatus === VideoUploadStatus.FAILED) {
+			throw new AppError('Video upload failed', 500);
+		}
+
+		await courseRepository.updateVideo(video.id, {
+			uploadStatus: VideoUploadStatus.COMPLETED,
+		});
+
+		return AppResponse(res, 200, null, 'Video upload confirmed');
 	});
 }
 
 export const courseController = new CourseController();
+
+//frontend code
+// function getVideoMetadata(file) {
+// 	return new Promise((resolve, reject) => {
+// 		const video = document.createElement('video');
+// 		video.preload = 'metadata';
+
+// 		video.onloadedmetadata = () => {
+// 			URL.revokeObjectURL(video.src);
+// 			resolve({
+// 				duration: Math.round(video.duration), // in seconds
+// 				size: file.size, // in bytes
+// 				type: file.type, // MIME type
+// 				name: file.name, // Original file name
+// 			});
+// 		};
+
+// 		video.onerror = () => {
+// 			reject(new Error('Error loading video file'));
+// 		};
+
+// 		video.src = URL.createObjectURL(file);
+// 	});
+// }
+
+// // Usage Example
+// const fileInput = document.getElementById('videoInput');
+// fileInput.addEventListener('change', async (event) => {
+// 	const file = event.target.files[0];
+// 	if (!file) return;
+
+// 	try {
+// 		const metadata = await getVideoMetadata(file);
+// 		console.log('Video Metadata:', metadata);
+
+// 		// Send metadata to the backend
+// 		const response = await fetch('/api/lessons', {
+// 			method: 'POST',
+// 			headers: { 'Content-Type': 'application/json' },
+// 			body: JSON.stringify({
+// 				courseId: 'your-course-id',
+// 				title: 'Lesson Title',
+// 				fileName: metadata.name,
+// 				fileType: metadata.type,
+// 				fileSize: metadata.size,
+// 				videoLength: metadata.duration,
+// 			}),
+// 		});
+// 		const data = await response.json();
+// 		console.log('Backend Response:', data);
+// 	} catch (error) {
+// 		console.error('Error getting video metadata:', error);
+// 	}
+// });
+
+// async function getUploadUrl(file) {
+// 	// Extract metadata
+// 	const fileName = file.name;
+// 	const fileType = file.type;
+// 	const fileSize = file.size;
+// 	const duration = await getVideoDuration(file); // Function to get video duration
+
+// 	// Request pre-signed URL from backend
+// 	const response = await fetch('/api/lessons/generate-upload-url', {
+// 		method: 'POST',
+// 		headers: { 'Content-Type': 'application/json' },
+// 		body: JSON.stringify({ courseId, chapterId, fileName, fileType, fileSize, duration }),
+// 	});
+
+// 	const data = await response.json();
+// 	return data.uploadUrl;
+// }
+
+// async function uploadVideoToR2(file, uploadUrl, key) {
+// 	try {
+// 		const response = await fetch(uploadUrl, {
+// 			method: 'PUT',
+// 			body: file,
+// 			headers: {
+// 				'Content-Type': file.type,
+// 			},
+// 		});
+
+// 		if (!response.ok) throw new Error('Upload failed');
+
+// 		// Notify backend of successful upload
+// 		await fetch('/api/lessons/video-uploaded', {
+// 			method: 'POST',
+// 			headers: { 'Content-Type': 'application/json' },
+// 			body: JSON.stringify({ key }),
+// 		});
+
+// 		console.log('Upload successful, backend notified');
+// 	} catch (error) {
+// 		console.error('Error uploading video:', error);
+// 	}
+// }

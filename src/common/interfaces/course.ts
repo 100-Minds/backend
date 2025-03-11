@@ -1,3 +1,5 @@
+import { VideoUploadStatus } from "../constants";
+
 export interface ICourse {
 	id: string;
 	name: string;
@@ -23,6 +25,7 @@ export interface ICourseVideo {
 	chapterId: string;
 	videoURL: string;
 	duration: string;
+	uploadStatus: VideoUploadStatus;
 	isDeleted: boolean;
 	created_at?: Date;
 	updated_at?: Date;
