@@ -309,7 +309,7 @@ export class CourseController {
 		return AppResponse(res, 200, signedUrl ? { signedUrl, key } : null, 'Lesson updated successfully.');
 	});
 
-	videoUploaded = catchAsync(async (req: Request, res: Response) => {
+	updateVideoUploadedStatus = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { key, videoUploadStatus } = req.body;
 

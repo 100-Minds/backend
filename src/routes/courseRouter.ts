@@ -16,7 +16,7 @@ router.get('/get-lesson', courseController.getCourseLesson);
 router.get('/get-lessons', courseController.getCourseLessons);
 router.post('/create-lesson', courseController.createLesson);
 router.post('/update-lesson', courseController.updateLesson);
-router.post('/video-uploaded', courseController.videoUploaded);
+router.post('/update-video-uploaded-status', courseController.updateVideoUploadedStatus);
 
 // //chapter routes
 // router.get('/get-chapter', courseController.getChapter);
