@@ -6,3 +6,4 @@ export * from './scenarioController';
 export * from './courseController';
 export * from './rolePlayController';
 export * from './quizController';
+export * from './powerSkillController';

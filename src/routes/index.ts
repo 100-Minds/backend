@@ -5,3 +5,4 @@ export * from './scenarioRouter';
 export * from './courseRouter';
 export * from './rolePlayRouter';
 export * from './quizRouter';
+export * from './powerSkillRouter';

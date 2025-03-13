@@ -1,5 +1,14 @@
 import { knexDb } from '@/common/config';
-import { ICourse, ICourseChapter, ICourseVideo, MaxChapterResult, ILesson, IChapterLesson } from '@/common/interfaces';
+import {
+	ICourse,
+	ICourseChapter,
+	ICourseVideo,
+	MaxChapterResult,
+	ILesson,
+	IChapterLesson,
+	ICoursePowerSkill,
+	IPowerSkill,
+} from '@/common/interfaces';
 import { DateTime } from 'luxon';
 
 class CourseRepository {
@@ -173,6 +182,22 @@ class CourseRepository {
 		};
 
 		return lesson;
+	};
+
+	addPowerSkillsToCourse = async (courseId: string, powerSkillIds: string[]): Promise<ICoursePowerSkill[]> => {
+		const payload = powerSkillIds.map((powerSkillId) => ({
+			courseId,
+			powerSkillId,
+		}));
+
+		return await knexDb.table('course_power_skills').insert(payload).returning('*');
+	};
+
+	getPowerSkillsByCourse = async (courseId: string): Promise<IPowerSkill[]> => {
+		return await knexDb('power_skills')
+			.join('course_power_skills', 'power_skills.id', 'course_power_skills.powerSkillId')
+			.where('course_power_skills.courseId', courseId)
+			.select('power_skills.*');
 	};
 }
 

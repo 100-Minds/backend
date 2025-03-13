@@ -4,3 +4,4 @@ export * from './userRepository';
 export * from './rolePlayRepository';
 export * from './teamRepository';
 export * from './quizRepository';
+export * from './powerSkillRepository';

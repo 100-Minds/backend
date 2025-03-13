@@ -11,3 +11,4 @@ export * from './aws';
 export * from './maxChapter';
 export * from './quiz';
 export * from './emailQueue';
+export * from './powerSkill';
