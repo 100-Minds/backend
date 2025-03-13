@@ -5,9 +5,9 @@ const options = {
 	definition: {
 		openapi: '3.0.0',
 		info: {
-			title: 'Your API Documentation',
+			title: '100MINDS Documentation',
 			version: '1.0.0',
-			description: 'API documentation for your TypeScript Node.js application',
+			description: 'API documentation for 100minds backend application',
 		},
 		servers: [
 			{
