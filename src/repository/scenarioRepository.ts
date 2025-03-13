@@ -11,6 +11,10 @@ class ScenarioRepository {
 		return knexDb('sys_scenario').where({ id, isDeleted: false }).first();
 	};
 
+	findScenarioByName = async (scenarioName: string): Promise<IScenario | null> => {
+		return knexDb('sys_scenario').where({ scenario: scenarioName }).select('id', 'scenario').first();
+	};
+
 	update = async (id: string, payload: Partial<IScenario>): Promise<IScenario[]> => {
 		return await knexDb('sys_scenario')
 			.where({ id })

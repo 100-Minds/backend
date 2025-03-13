@@ -10,6 +10,7 @@ export interface IPowerSkill {
 export interface ICoursePowerSkill {
 	id: string;
 	courseId: string;
+	powerSkillName: string;
 	powerSkillId: string;
 	created_at?: Date;
 	updated_at?: Date;

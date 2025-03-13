@@ -6,6 +6,13 @@ const router = express.Router();
 
 //protect all routes after this middleware
 router.use(protect);
+//module route
+router.post('/create-module', courseController.createModule);
+router.get('/get-module', courseController.getModule);
+router.get('/get-modules', courseController.getAllModules);
+router.post('/update-module', courseController.updateModule);
+router.post('/delete-module', courseController.deleteModule);
+
 router.get('/get-course', courseController.getCourse);
 router.post('/create-course', courseController.createCourse);
 router.post('/update-course', courseController.updateCourse);

@@ -1,10 +1,21 @@
-import { VideoUploadStatus } from "../constants";
+import { VideoUploadStatus } from '../constants';
+
+export interface IModule {
+	id: string;
+	name: string;
+	userId: string;
+	isDeleted: boolean;
+	created_at?: Date;
+	updated_at?: Date;
+}
 
 export interface ICourse {
 	id: string;
 	name: string;
 	userId: string;
-	scenarioId: string;
+	moduleId: string;
+	scenarioName: string | null;
+	scenarioId: string | null;
 	isDeleted: boolean;
 	created_at?: Date;
 	updated_at?: Date;
@@ -44,7 +55,7 @@ export interface ILesson {
 }
 
 export interface IChapterLesson {
-    course: Pick<ICourse, 'id' | 'name'>;
-    chapter: ICourseChapter;
-    video: ICourseVideo[];
+	course: Pick<ICourse, 'id' | 'name'>;
+	chapter: ICourseChapter;
+	video: ICourseVideo[];
 }

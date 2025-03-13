@@ -6,12 +6,53 @@ import {
 	MaxChapterResult,
 	ILesson,
 	IChapterLesson,
-	ICoursePowerSkill,
-	IPowerSkill,
+	IModule,
 } from '@/common/interfaces';
 import { DateTime } from 'luxon';
 
 class CourseRepository {
+	//////MODULES//////
+	createModule = async (payload: Partial<IModule>): Promise<IModule[]> => {
+		return await knexDb.table('course_module').insert(payload).returning('*');
+	};
+
+	getModuleByName = async (name: string): Promise<IModule | null> => {
+		return await knexDb.table('course_module').where({ name }).first();
+	};
+
+	getModule = async (id: string): Promise<IModule | null> => {
+		const result = await knexDb.table('course_module').where({ id }).select('*');
+		return result.length ? result[0] : null;
+	};
+
+	getAllModules = async (): Promise<IModule[]> => {
+		return await knexDb.table('course_module').where({ isDeleted: false }).orderBy('created_at', 'asc');
+	}
+
+	deleteModule = async (id: string) => {
+		return await knexDb.table('course_module').where({ id }).update({ isDeleted: true }).returning('*');
+	};
+
+	updateModule = async (id: string, payload: Partial<IModule>): Promise<IModule[]> => {
+		return await knexDb('course_module')
+			.where({ id })
+			.update({ ...payload, updated_at: DateTime.now().toJSDate() })
+			.returning('*');
+	};
+
+	findAllModule = async (): Promise<IModule[]> => {
+		return knexDb('course_module').where({ isDeleted: false }).orderBy('created_at', 'asc');
+	};
+
+	findOneModule = async (id: string): Promise<IModule | null> => {
+		return knexDb('course_module').where({ id, isDeleted: false }).first();
+	};
+
+	findModuleByIsDeleted = async (isDeleted: boolean): Promise<IModule[]> => {
+		return knexDb('course_module').where({ isDeleted }).orderBy('created_at', 'desc');
+	};
+
+	///////////COURSES/////////
 	create = async (payload: Partial<ICourse>): Promise<ICourse[]> => {
 		return await knexDb.table('course').insert(payload).returning('*');
 	};
@@ -184,21 +225,9 @@ class CourseRepository {
 		return lesson;
 	};
 
-	addPowerSkillsToCourse = async (courseId: string, powerSkillIds: string[]): Promise<ICoursePowerSkill[]> => {
-		const payload = powerSkillIds.map((powerSkillId) => ({
-			courseId,
-			powerSkillId,
-		}));
 
-		return await knexDb.table('course_power_skills').insert(payload).returning('*');
-	};
-
-	getPowerSkillsByCourse = async (courseId: string): Promise<IPowerSkill[]> => {
-		return await knexDb('power_skills')
-			.join('course_power_skills', 'power_skills.id', 'course_power_skills.powerSkillId')
-			.where('course_power_skills.courseId', courseId)
-			.select('power_skills.*');
-	};
+	/////////COURSEPOWER SKILL////////
+	
 }
 
 export const courseRepository = new CourseRepository();

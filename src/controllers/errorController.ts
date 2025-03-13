@@ -14,6 +14,10 @@ const handleTimeoutError = () => {
 	return new AppError('Request timeout', 408);
 };
 
+const handleInvalidUUIDError = () => {
+	return new AppError('Invalid UUID format provided', 400);
+};
+
 const sendErrorDev = (err: AppError, res: Response) => {
 	res.status(err.statusCode).json({
 		status: err.status,
@@ -41,7 +45,7 @@ const sendErrorProd = (err: AppError, res: Response) => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const errorHandler = (err: AppError, req: Request, res: Response, next: NextFunction) => {
+export const errorHandler = (err, req: Request, res: Response, next: NextFunction) => {
 	err.statusCode = err?.statusCode || 500;
 	err.status = err?.status || 'Error';
 	let error = err;
@@ -61,6 +65,8 @@ export const errorHandler = (err: AppError, req: Request, res: Response, next: N
 				case err.name === 'TokenExpiredError':
 					error = handleJWTExpiredError();
 					break;
+				case err.code === '22P02':
+					error = handleInvalidUUIDError();
 					break;
 				default:
 					break;

@@ -8,14 +8,134 @@ import {
 	videoUploadSuccessfulEmail,
 } from '@/common/utils';
 import { catchAsync } from '@/middlewares';
-import { courseRepository } from '@/repository';
+import { courseRepository, powerSkillRepository, scenarioRepository } from '@/repository';
 import { VideoUploadStatus } from '@/common/constants';
 import { ENVIRONMENT } from '@/common/config';
+import { IScenario } from '@/common/interfaces';
 
 export class CourseController {
+	createModule = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { name } = req.body;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (user.role === 'user') {
+			throw new AppError('Only an admin can create a module', 403);
+		}
+		if (!name) {
+			throw new AppError('Name is required', 400);
+		}
+
+		const extinguishModule = await courseRepository.getModuleByName(name);
+		if (extinguishModule) {
+			throw new AppError('Module name exist already', 400);
+		}
+
+		const module = await courseRepository.createModule({
+			name,
+			userId: user.id,
+		});
+
+		return AppResponse(res, 201, toJSON(module), 'Module created successfully');
+	});
+
+	getModule = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { moduleId } = req.query;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (!moduleId) {
+			throw new AppError('Module ID is required', 400);
+		}
+		const module = await courseRepository.getModule(moduleId as string);
+		if (!module) {
+			throw new AppError('Module not found', 404);
+		}
+
+		return AppResponse(res, 200, toJSON(module), 'Module successfully fetched');
+	});
+
+	getAllModules = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+
+		const modules = await courseRepository.getAllModules();
+		if (!modules) {
+			throw new AppError('No modules found', 404);
+		}
+
+		return AppResponse(res, 200, toJSON(modules), 'Modules successfully fetched');
+	});
+
+	updateModule = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { name, moduleId } = req.body;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (user.role === 'user') {
+			throw new AppError('Only an admin can update a module', 403);
+		}
+		if (!moduleId || !name) {
+			throw new AppError('Incomplete update data', 400);
+		}
+
+		const module = await courseRepository.getModule(moduleId);
+		if (!module) {
+			throw new AppError('Module not found', 404);
+		}
+
+		const updatedModule = await courseRepository.updateModule(moduleId, { name });
+		if (!updatedModule) {
+			throw new AppError('Module not updated', 400);
+		}
+
+		return AppResponse(res, 200, toJSON(updatedModule), 'Module updated successfully');
+	});
+
+	deleteModule = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { moduleId } = req.body;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (user.role === 'user') {
+			throw new AppError('Only an admin can delete a module', 403);
+		}
+		if (!moduleId) {
+			throw new AppError('Module ID is required', 400);
+		}
+
+		const module = await courseRepository.getModule(moduleId as string);
+		if (!module) {
+			throw new AppError('Module not found', 404);
+		}
+		if (module.isDeleted) {
+			throw new AppError('Module has already been deleted', 400);
+		}
+
+		const deletedModule = await courseRepository.updateModule(moduleId, {
+			isDeleted: true,
+		});
+		if (!deletedModule) {
+			throw new AppError('Module not deleted', 400);
+		}
+
+		return AppResponse(res, 200, null, 'Module deleted successfully');
+	});
+
 	createCourse = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { name, scenarioId } = req.body;
+		const { name, scenario, moduleId, skills } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -23,9 +143,12 @@ export class CourseController {
 		if (user.role === 'user') {
 			throw new AppError('Only an admin can create a course', 403);
 		}
-
-		if (!name) {
-			throw new AppError('Course name is required', 400);
+		if (!name || !skills || !Array.isArray(skills) || skills.length === 0) {
+			throw new AppError('Course name and at least one power skill are required', 400);
+		}
+		const skillRecords = await powerSkillRepository.findSkillsByNames(skills);
+		if (skillRecords.length !== skills.length) {
+			throw new AppError('Invalid power skills provided', 400);
 		}
 
 		const extinguishCourse = await courseRepository.getCourseByName(user.id, name);
@@ -33,16 +156,37 @@ export class CourseController {
 			throw new AppError('Course name exist already', 400);
 		}
 
+		const extinguishModule = await courseRepository.getModule(moduleId);
+		if (!extinguishModule) {
+			throw new AppError('Module not found', 404);
+		}
+
+		let scenarioRecord: IScenario | null = null;
+		if (scenario) {
+			scenarioRecord = await scenarioRepository.findScenarioByName(scenario);
+			if (!scenarioRecord) {
+				throw new AppError('Scenario not found', 400);
+			}
+		}
+
 		const [course] = await courseRepository.create({
 			name,
 			userId: user.id,
-			...(scenarioId && scenarioId.trim() ? { scenarioId } : null),
+			moduleId,
+			scenarioId: scenarioRecord ? scenarioRecord.id : null,
+			scenarioName: scenarioRecord ? scenarioRecord.scenario : null,
 		});
 		if (!course) {
 			throw new AppError('Failed to create course', 500);
 		}
 
-		return AppResponse(res, 201, toJSON(course), 'Course created successfully');
+		const formattedSkills = skillRecords.map((skill) => ({ id: skill.id, name: skill.powerskill }));
+		const addSkill = await powerSkillRepository.addPowerSkillsToCourse(course.id, formattedSkills);
+		if (!addSkill) {
+			throw new AppError('Failed to add power skills to course', 500);
+		}
+
+		return AppResponse(res, 201, toJSON([course]), 'Course created successfully');
 	});
 
 	getCourse = catchAsync(async (req: Request, res: Response) => {
@@ -63,7 +207,7 @@ export class CourseController {
 
 	updateCourse = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { name, courseId, scenarioId } = req.body;
+		const { name, courseId, scenario, skills } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -74,7 +218,7 @@ export class CourseController {
 		}
 
 		if (!courseId || !name) {
-			throw new AppError('Incomplete update data', 400);
+			throw new AppError('Course ID and name are required', 400);
 		}
 
 		const course = await courseRepository.getCourse(courseId);
@@ -83,17 +227,44 @@ export class CourseController {
 		}
 
 		if (course.userId !== user.id) {
-			throw new AppError('You are not authorized to update this course name', 403);
+			throw new AppError('You are not authorized to update this course', 403);
 		}
 
 		if (course.isDeleted) {
 			throw new AppError('Course has already been deleted', 400);
 		}
 
+		let scenarioRecord: IScenario | null = null;
+		if (scenario) {
+			scenarioRecord = await scenarioRepository.findScenarioByName(scenario);
+			if (!scenarioRecord) {
+				throw new AppError('Scenario not found', 400);
+			}
+		}
+
 		const updatedCourse = await courseRepository.update(courseId, {
 			name,
-			...(scenarioId && scenarioId.trim() ? { scenarioId } : null),
+			scenarioId: scenarioRecord ? scenarioRecord.id : null,
+			scenarioName: scenarioRecord ? scenarioRecord.scenario : null,
 		});
+
+		if (skills && Array.isArray(skills) && skills.length > 0) {
+			const skillRecords = await powerSkillRepository.findSkillsByNames(skills);
+			if (skillRecords.length !== skills.length) {
+				throw new AppError('Invalid power skills provided', 400);
+			}
+
+			const formattedSkills = skillRecords.map((skill) => ({ id: skill.id, name: skill.powerskill }));
+
+			const removeSkill = await powerSkillRepository.removePowerSkillsFromCourse(courseId);
+			if (!removeSkill) {
+				throw new AppError('Failed to remove power skills from the course', 500);
+			}
+			const addSkill = await powerSkillRepository.addPowerSkillsToCourse(courseId, formattedSkills);
+			if (!addSkill) {
+				throw new AppError('Failed to update power skills for the course', 500);
+			}
+		}
 
 		return AppResponse(res, 200, toJSON(updatedCourse), 'Course updated successfully');
 	});
