@@ -556,5 +556,6 @@ router.use(protect);
  *                   example: You are not logged in
  */
 router.get('/sign-out', authController.signOut);
+router.get('/health', authController.appHealth);
 
 export { router as authRouter };

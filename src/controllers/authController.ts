@@ -229,6 +229,10 @@ class AuthController {
 
 		return AppResponse(res, 200, null, 'Password reset successfully');
 	});
+
+	appHealth = catchAsync(async (req: Request, res: Response) => {
+		return AppResponse(res, 200, null, 'Server is healthy');
+	})
 }
 
 export const authController = new AuthController();
