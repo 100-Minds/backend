@@ -501,6 +501,7 @@ router.post('/password/forgot', authController.forgotPassword);
  *                     - Passwords do not match
  */
 router.post('/password/reset', authController.resetPassword);
+router.get('/health', authController.appHealth);
 
 //protect all routes after this middleware
 router.use(protect);
@@ -556,6 +557,5 @@ router.use(protect);
  *                   example: You are not logged in
  */
 router.get('/sign-out', authController.signOut);
-router.get('/health', authController.appHealth);
 
 export { router as authRouter };
