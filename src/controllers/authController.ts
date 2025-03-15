@@ -122,14 +122,14 @@ class AuthController {
 		setCookie(req, res, 'accessToken', accessToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.ACCESS));
 		setCookie(req, res, 'refreshToken', refreshToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.REFRESH));
 
-		console.log('Cookies set:', { accessToken, refreshToken });
-
 		await userRepository.update(user.id, {
 			otp: '',
 			otpExpires: currentRequestTime.toJSDate(),
 			loginRetries: 0,
 			lastLogin: currentRequestTime.toJSDate(),
 		});
+
+		console.log('Set-Cookie headers:', res.get('Set-Cookie'));
 
 		return AppResponse(res, 200, toJSON([user]), 'User logged in successfully');
 	});
@@ -234,7 +234,7 @@ class AuthController {
 
 	appHealth = catchAsync(async (req: Request, res: Response) => {
 		return AppResponse(res, 200, null, 'Server is healthy');
-	})
+	});
 }
 
 export const authController = new AuthController();
