@@ -157,7 +157,7 @@ const setCookie = (
 			httpOnly: true,
 			secure: ENVIRONMENT.APP.ENV === 'production',
 			path: '/',
-			sameSite: ENVIRONMENT.APP.ENV === 'production' ? 'none' : 'lax',
+			sameSite: ENVIRONMENT.APP.ENV === 'production' ? 'lax' : 'lax',
 			partitioned: ENVIRONMENT.APP.ENV === 'production',
 			maxAge,
 		});
