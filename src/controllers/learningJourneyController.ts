@@ -48,7 +48,7 @@ class LearningJourneyController {
 			throw new AppError('Please log in again', 400);
 		}
 
-		const learningJourney = await learningJourneyRepository.getStructuredLearningJourney();
+		const learningJourney = await learningJourneyRepository.getAllLearningJourney();
 		if (!learningJourney) {
 			throw new AppError('No learning journey found', 404);
 		}
@@ -90,6 +90,32 @@ class LearningJourneyController {
 		}
 
 		const learningJourney = await learningJourneyRepository.getAllUserLearningJourney(user.id);
+		if (!learningJourney) {
+			throw new AppError('No learning journey found', 404);
+		}
+		return AppResponse(res, 200, toJSON(learningJourney), 'Learning journey retrieved successfully');
+	});
+
+	getAllCourseLearningJourney = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+
+		const learningJourney = await learningJourneyRepository.getAllCourseLearningJourney();
+		if (!learningJourney) {
+			throw new AppError('No learning journey found', 404);
+		}
+		return AppResponse(res, 200, toJSON(learningJourney), 'Learning journey retrieved successfully');
+	});
+
+	getAllUserCourseLearningJourney = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+
+		const learningJourney = await learningJourneyRepository.getAllUserCourseLearningJourney(user.id);
 		if (!learningJourney) {
 			throw new AppError('No learning journey found', 404);
 		}

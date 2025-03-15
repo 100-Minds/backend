@@ -78,31 +78,6 @@ const limiter = rateLimit({
 app.use(limiter);
 
 //Middleware to allow CORS from frontend
-// interface CorsOptions {
-// 	origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => void;
-// 	credentials: boolean;
-// 	methods: string[];
-// 	allowedHeaders: string[];
-// }
-
-// const corsOptions: CorsOptions = {
-// 	origin: (origin, callback) => {
-// 		const allowedOrigins = ['https://one00-minds.onrender.com', 'http://localhost:5173'];
-
-// 		// Allow requests with no origin (e.g., same-origin) or from allowed origins
-// 		if (!origin || allowedOrigins.includes(origin)) {
-// 			callback(null, true);
-// 		} else {
-// 			callback(new Error('Not allowed by CORS'));
-// 		}
-// 	},
-// 	credentials: true,
-// 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-// 	allowedHeaders: ['Content-Type', 'Authorization'],
-// };
-
-// app.use(cors(corsOptions));
-
 app.use(
 	cors({
 		origin: [
@@ -114,6 +89,26 @@ app.use(
 		credentials: true,
 	})
 );
+
+// const allowedOrigins = [
+// 	'https://one00-minds.onrender.com',
+// 	'http://localhost:5173',
+// 	'http://localhost:3000',
+// 	'http://localhost:3001',
+// ];
+// const corsOptions = {
+// 	origin: (origin, callback) => {
+// 		console.log('CORS origin:', origin);
+
+// 		if (!origin || allowedOrigins.includes(origin)) {
+// 			callback(null, origin);
+// 		} else {
+// 			callback(new Error('Not allowed by CORS'));
+// 		}
+// 	},
+// 	credentials: true,
+// };
+// app.use(cors(corsOptions));
 
 //Configure Content Security Policy (CSP)
 //prevent Cross-Site Scripting (XSS) attacks by not allowing the loading of content from other domains.

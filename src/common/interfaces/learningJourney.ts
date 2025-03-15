@@ -24,17 +24,9 @@ export interface StructuredJourney {
 			scenarioId: string;
 			scenarioName: string;
 			status: string;
-			chapters: { chapterId: string; status: string, chapterNumber: number }[];
+			chapters: { chapterId: string; status: string; chapterNumber: number }[];
 		}
 	>;
-}
-
-export interface StructuredUserCourseJourney {
-	courseId: string;
-	courseName: string;
-	scenarios: { scenarioId: string; scenarioName: string }[];
-	chapters: { chapterId: string; status: string }[];
-	status: string;
 }
 
 export interface ILearningJourney {

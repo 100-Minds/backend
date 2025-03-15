@@ -6,7 +6,6 @@ import {
 	StructuredCourse,
 	StructuredJourney,
 	StructuredModule,
-	StructuredUserCourseJourney,
 } from '@/common/interfaces';
 import { AppError } from '@/common/utils';
 
@@ -50,7 +49,7 @@ class LearningJourneyRepository {
 		return learningJourneyEntries;
 	};
 
-	getStructuredLearningJourney = async () => {
+	getAllLearningJourney = async () => {
 		const learningJourneyRecords = await knexDb('learning_journey')
 			.select('moduleId', 'moduleName', 'courseId', 'courseName', 'scenarioId', 'scenarioName')
 			.orderBy('created_at', 'asc');
@@ -173,7 +172,6 @@ class LearningJourneyRepository {
 			.select('courseId', 'id as chapterId', 'chapterNumber');
 		const userCompletedChapters = await knexDb('user_learning_journey').where({ userId }).select('chapterId');
 
-		// Convert completed chapters into a Set for quick lookup
 		const completedChaptersSet = new Set(userCompletedChapters.map((c) => c.chapterId));
 
 		const courseChaptersMap: Record<string, Map<string, { chapterId: string; chapterNumber: number }>> = {};
@@ -191,8 +189,6 @@ class LearningJourneyRepository {
 		const structuredJourney: Record<string, StructuredJourney> = {};
 		for (const record of learningJourney) {
 			const { moduleId, moduleName, courseId, courseName, scenarioId, scenarioName } = record;
-
-			// Initialize module if not present
 			if (!structuredJourney[moduleId]) {
 				structuredJourney[moduleId] = {
 					moduleId,
@@ -201,7 +197,6 @@ class LearningJourneyRepository {
 				};
 			}
 
-			// Initialize course if not present
 			if (!structuredJourney[moduleId].courses[courseId]) {
 				structuredJourney[moduleId].courses[courseId] = {
 					courseId,
@@ -213,10 +208,8 @@ class LearningJourneyRepository {
 				};
 			}
 
-			// Get unique chapters for the current course
 			const courseChapters = courseChaptersMap[courseId] ? [...courseChaptersMap[courseId].values()] : [];
 
-			// Assign chapters and determine status
 			const uniqueChapters = new Map();
 			for (const chapter of courseChapters) {
 				if (!uniqueChapters.has(chapter.chapterId)) {
@@ -228,13 +221,11 @@ class LearningJourneyRepository {
 				}
 			}
 
-			// Assign unique chapters to course and sort by chapterNumber
 			structuredJourney[moduleId].courses[courseId].chapters = [...uniqueChapters.values()].sort(
 				(a, b) => a.chapterNumber - b.chapterNumber
 			);
 		}
 
-		// Determine course completion status
 		for (const module of Object.values(structuredJourney)) {
 			for (const course of Object.values(module.courses)) {
 				const allCompleted =
@@ -251,44 +242,38 @@ class LearningJourneyRepository {
 		return result;
 	};
 
-	getCourseStructuredLearningJourney = async () => {
+	getAllCourseLearningJourney = async () => {
 		const learningJourneyRecords = await knexDb('learning_journey')
 			.select('courseId', 'courseName', 'scenarioId', 'scenarioName')
 			.orderBy('created_at', 'asc');
 
-		// Structure learning journey by course
-
 		const structuredLearning: Record<string, StructuredCourse> = {};
-
 		for (const record of learningJourneyRecords) {
-			// Initialize course if not present
 			if (!structuredLearning[record.courseId]) {
 				structuredLearning[record.courseId] = {
 					courseId: record.courseId,
 					courseName: record.courseName,
 					scenarios: [],
-					chapters: [], // Placeholder for chapters
+					chapters: [],
 				};
 			}
 
-			// Add scenario to the course
-			if (record.scenarioId) {
-				structuredLearning[record.courseId].scenarios.push({
+			const course = structuredLearning[record.courseId];
+			if (record.scenarioId && !course.scenarios.some((s) => s.scenarioId === record.scenarioId)) {
+				course.scenarios.push({
 					scenarioId: record.scenarioId,
 					scenarioName: record.scenarioName,
 				});
 			}
 		}
 
-		// Fetch all chapters in bulk (avoiding N+1 queries)
 		const courseIds = Object.keys(structuredLearning);
-
 		if (courseIds.length > 0) {
 			const chapters = await knexDb('course_chapters')
 				.whereIn('courseId', courseIds)
-				.select('id as chapterId', 'courseId', 'title as chapterName');
+				.select('id as chapterId', 'courseId', 'title as chapterName', 'chapterNumber')
+				.orderBy('chapterNumber', 'asc');
 
-			// Attach chapters to their respective courses
 			for (const chapter of chapters) {
 				if (structuredLearning[chapter.courseId]) {
 					structuredLearning[chapter.courseId].chapters.push(chapter);
@@ -296,63 +281,76 @@ class LearningJourneyRepository {
 			}
 		}
 
-		// Convert structured object to an array
 		return Object.values(structuredLearning);
 	};
 
-	getStructuredUserCourseLearningJourney = async (userId: string) => {
+	getAllUserCourseLearningJourney = async (userId: string) => {
 		const learningJourney = await knexDb('learning_journey').select(
 			'courseId',
 			'courseName',
-			'chapterId',
 			'scenarioId',
 			'scenarioName'
 		);
 
-		// Fetch the user's completed chapters
+		const courseIds = [...new Set(learningJourney.map((record) => record.courseId))];
+
+		const chapters = await knexDb('course_chapters')
+			.whereIn('courseId', courseIds)
+			.select('courseId', 'id as chapterId', 'title', 'chapterNumber');
+
 		const userCompletedChapters = await knexDb('user_learning_journey').where({ userId }).select('chapterId');
 
-		// Convert completed chapters into a Set for fast lookup
 		const completedChaptersSet = new Set(userCompletedChapters.map((c) => c.chapterId));
 
-		// Group by course
+		const courseChaptersMap: Record<
+			string,
+			Map<
+				string,
+				{ chapterId: string; chapterTitle: string; chapterNumber: number; status: 'completed' | 'not-completed' }
+			>
+		> = {};
+		for (const chapter of chapters) {
+			if (!courseChaptersMap[chapter.courseId]) {
+				courseChaptersMap[chapter.courseId] = new Map();
+			}
 
-		const structuredJourney: Record<string, StructuredUserCourseJourney> = {};
+			courseChaptersMap[chapter.courseId].set(chapter.chapterId, {
+				chapterId: chapter.chapterId,
+				chapterTitle: chapter.title,
+				chapterNumber: chapter.chapterNumber,
+				status: completedChaptersSet.has(chapter.chapterId) ? ('completed' as const) : ('not-completed' as const),
+			});
+		}
 
+		const structuredCourses: Record<string, StructuredCourse & { courseStatus: 'completed' | 'not-completed' }> = {};
 		for (const record of learningJourney) {
-			const { courseId, courseName, chapterId, scenarioId, scenarioName } = record;
-
-			// Initialize course if not present
-			if (!structuredJourney[courseId]) {
-				structuredJourney[courseId] = {
+			const { courseId, courseName, scenarioId, scenarioName } = record;
+			if (!structuredCourses[courseId]) {
+				structuredCourses[courseId] = {
 					courseId,
 					courseName,
 					scenarios: [],
 					chapters: [],
-					status: 'not-completed', // Default, updated later
+					courseStatus: 'not-completed',
 				};
 			}
 
-			// Add scenario (if applicable)
-			if (scenarioId) {
-				structuredJourney[courseId].scenarios.push({ scenarioId, scenarioName });
+			// Avoid duplicates
+			if (!structuredCourses[courseId].scenarios.some((s) => s.scenarioId === scenarioId)) {
+				structuredCourses[courseId].scenarios.push({ scenarioId, scenarioName });
 			}
+			if (courseChaptersMap[courseId]) {
+				const sortedChapters = [...courseChaptersMap[courseId].values()].sort(
+					(a, b) => a.chapterNumber - b.chapterNumber
+				);
+				structuredCourses[courseId].chapters = sortedChapters;
 
-			// Determine chapter status
-			const chapterStatus = completedChaptersSet.has(chapterId) ? 'completed' : 'not-completed';
-
-			// Add chapter
-			structuredJourney[courseId].chapters.push({ chapterId, status: chapterStatus });
+				const allChaptersCompleted = sortedChapters.every((chapter) => chapter.status === 'completed');
+				structuredCourses[courseId].courseStatus = allChaptersCompleted ? 'completed' : 'not-completed';
+			}
 		}
 
-		// Determine course completion status
-		for (const course of Object.values(structuredJourney)) {
-			const allCompleted = course.chapters.length > 0 && course.chapters.every((ch) => ch.status === 'completed');
-			course.status = allCompleted ? 'completed' : 'not-completed';
-		}
-
-		// Convert object to array
-		return Object.values(structuredJourney);
+		return Object.values(structuredCourses);
 	};
 }
 
