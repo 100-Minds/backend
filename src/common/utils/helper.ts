@@ -155,11 +155,11 @@ const setCookie = (
 	} else {
 		res.cookie(name, value, {
 			httpOnly: true,
-			secure: ENVIRONMENT.APP.ENV === 'production',
-			path: '/',
-			sameSite: ENVIRONMENT.APP.ENV === 'production' ? 'none' : 'lax',
-			partitioned: ENVIRONMENT.APP.ENV === 'production',
-			maxAge,
+			// secure: ENVIRONMENT.APP.ENV === 'production',
+			// path: '/',
+			// sameSite: ENVIRONMENT.APP.ENV === 'production' ? 'none' : 'lax',
+			// partitioned: ENVIRONMENT.APP.ENV === 'production',
+			// maxAge,
 		});
 	}
 	console.log('Cookie applied:', name);
