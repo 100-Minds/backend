@@ -7,6 +7,8 @@ export const protect = catchAsync(async (req: Request, res: Response, next: Next
 	const accessToken = req.cookies?.accessToken || req.headers['authorization']?.split(' ')[1];
 	const refreshToken = req.cookies?.refreshToken || req.headers['x-refresh-token'];
 
+	console.log(accessToken, refreshToken);
+
 	const { currentUser, accessToken: newAccessToken } = await authenticate({
 		accessToken,
 		refreshToken,
