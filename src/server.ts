@@ -24,6 +24,7 @@ import {
 	rolePlayRouter,
 	quizRouter,
 	powerSkillRouter,
+	learningJourneyRouter,
 } from '@/routes';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
@@ -77,12 +78,43 @@ const limiter = rateLimit({
 app.use(limiter);
 
 //Middleware to allow CORS from frontend
+// interface CorsOptions {
+// 	origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => void;
+// 	credentials: boolean;
+// 	methods: string[];
+// 	allowedHeaders: string[];
+// }
+
+// const corsOptions: CorsOptions = {
+// 	origin: (origin, callback) => {
+// 		const allowedOrigins = ['https://one00-minds.onrender.com', 'http://localhost:5173'];
+
+// 		// Allow requests with no origin (e.g., same-origin) or from allowed origins
+// 		if (!origin || allowedOrigins.includes(origin)) {
+// 			callback(null, true);
+// 		} else {
+// 			callback(new Error('Not allowed by CORS'));
+// 		}
+// 	},
+// 	credentials: true,
+// 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+// 	allowedHeaders: ['Content-Type', 'Authorization'],
+// };
+
+// app.use(cors(corsOptions));
+
 app.use(
 	cors({
-		origin: '*',
+		origin: [
+			'https://one00-minds.onrender.com',
+			'http://localhost:5173',
+			'http://localhost:3000',
+			'http://localhost:3001',
+		],
 		credentials: true,
 	})
 );
+
 //Configure Content Security Policy (CSP)
 //prevent Cross-Site Scripting (XSS) attacks by not allowing the loading of content from other domains.
 const contentSecurityPolicy = {
@@ -167,6 +199,7 @@ app.use('/api/v1/course', courseRouter);
 app.use('/api/v1/role-play', rolePlayRouter);
 app.use('/api/v1/quiz', quizRouter);
 app.use('/api/v1/skill', powerSkillRouter);
+app.use('/api/v1/journey', learningJourneyRouter);
 
 // Swagger documentation
 app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

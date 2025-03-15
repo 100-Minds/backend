@@ -7,6 +7,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.string('powerSkillName').notNullable();
 		table.uuid('powerSkillId').references('id').inTable('sys_powerskill').onDelete('CASCADE').notNullable();
 		table.unique(['courseId', 'powerSkillId']);
+		table.timestamps(true, true);
 	});
 }
 

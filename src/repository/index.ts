@@ -5,3 +5,4 @@ export * from './rolePlayRepository';
 export * from './teamRepository';
 export * from './quizRepository';
 export * from './powerSkillRepository';
+export * from './learningJourneyRepository';

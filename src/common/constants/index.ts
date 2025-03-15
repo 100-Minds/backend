@@ -32,3 +32,8 @@ export enum VideoUploadStatus {
 	COMPLETED = 'completed',
 	FAILED = 'failed',
 }
+
+export enum LearningStatus {
+	IN_PROGRESS = 'in-progress',
+	COMPLETED = 'completed',
+}

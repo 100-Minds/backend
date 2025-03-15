@@ -27,7 +27,7 @@ class CourseRepository {
 
 	getAllModules = async (): Promise<IModule[]> => {
 		return await knexDb.table('course_module').where({ isDeleted: false }).orderBy('created_at', 'asc');
-	}
+	};
 
 	deleteModule = async (id: string) => {
 		return await knexDb.table('course_module').where({ id }).update({ isDeleted: true }).returning('*');
@@ -65,6 +65,10 @@ class CourseRepository {
 		const result = await knexDb.table('course').where({ id }).select('*');
 		return result.length ? result[0] : null;
 	};
+
+	getModuleCourses = async (moduleId: string): Promise<ICourse[]> => {
+		return knexDb('course').where({ moduleId, isDeleted: false }).orderBy('created_at', 'asc');
+	}
 
 	deleteCourse = async (id: string) => {
 		return await knexDb.table('course').where({ id }).update({ isDeleted: true }).returning('*');
@@ -224,10 +228,6 @@ class CourseRepository {
 
 		return lesson;
 	};
-
-
-	/////////COURSEPOWER SKILL////////
-	
 }
 
 export const courseRepository = new CourseRepository();
