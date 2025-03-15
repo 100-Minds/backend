@@ -122,6 +122,8 @@ class AuthController {
 		setCookie(req, res, 'accessToken', accessToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.ACCESS));
 		setCookie(req, res, 'refreshToken', refreshToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.REFRESH));
 
+		console.log('Cookies set:', { accessToken, refreshToken });
+
 		await userRepository.update(user.id, {
 			otp: '',
 			otpExpires: currentRequestTime.toJSDate(),

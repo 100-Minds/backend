@@ -147,6 +147,7 @@ const setCookie = (
 	//options: CookieOptions = {},
 	maxAge: number
 ) => {
+	console.log('setCookie:', { name, value, maxAge });
 	const clientType = isMobile(req);
 	if (clientType === 'mobile') {
 		if (name === 'accessToken') res.locals.newAccessToken = value;
@@ -161,6 +162,7 @@ const setCookie = (
 			maxAge,
 		});
 	}
+	console.log('Cookie applied:', name);
 };
 
 const dateFromString = async (value: string) => {
