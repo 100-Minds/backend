@@ -12,7 +12,6 @@ export class RolePlayController {
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
-
 		if (!scenarioId || !timeSpent) {
 			throw new AppError('Scenario and Timespent are required', 400);
 		}
@@ -24,15 +23,19 @@ export class RolePlayController {
 
 		const scenarioExists = await scenarioRepository.findById(scenarioId);
 		if (!scenarioExists) {
-			throw new Error('Invalid or deleted scenario ID');
+			throw new AppError('Invalid or deleted scenario ID', 400);
 		}
 
-		const [existingRolePlay] = await rolePlayRepository.findByScenarioIdAndUserId(scenarioId, user.id);
+		const [existingRolePlay] = await rolePlayRepository.findByScenarioIdAndUserId(scenarioId, user.id);		
 		if (existingRolePlay) {
+			if (existingRolePlay.isDone) {
+				throw new AppError('You have already completed this role play', 400);
+			}
+
 			const currentSeconds = parseTimeSpent(existingRolePlay.timeSpent);
 			const newSeconds = timeSpent ? parseInt(timeSpent, 10) : 0;
 			if (isNaN(newSeconds) || newSeconds < 0) {
-				throw new Error('Time spent must be a positive number of seconds');
+				throw new AppError('Time spent must be a positive number of seconds', 400);
 			}
 			const updatedTimeSpent = formatTimeSpent(currentSeconds + newSeconds);
 
@@ -51,9 +54,10 @@ export class RolePlayController {
 			scenarioId,
 			timeSpent: formattedTimeSpent,
 			...(courseId && courseId.trim() ? { courseId } : null),
+			isDone,
 		});
 
-		return AppResponse(res, 201, toJSON(rolePlay), 'Role Play created successfully');
+		return AppResponse(res, 201, toJSON([rolePlay]), 'Role Play created successfully');
 	});
 
 	updateRolePlay = catchAsync(async (req: Request, res: Response) => {
@@ -63,11 +67,9 @@ export class RolePlayController {
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
-
 		if (!rolePlayId) {
 			throw new AppError('Role Play ID is required', 400);
 		}
-
 		if (!timeSpent) {
 			throw new AppError('Timespent is required', 400);
 		}
@@ -107,7 +109,7 @@ export class RolePlayController {
 			throw new AppError('Failed to update role play', 500);
 		}
 
-		return AppResponse(res, 200, toJSON(updatedRolePlay), 'Role Play updated successfully');
+		return AppResponse(res, 200, toJSON([updatedRolePlay]), 'Role Play updated successfully');
 	});
 
 	getUserRolePlays = catchAsync(async (req: Request, res: Response) => {
@@ -120,7 +122,6 @@ export class RolePlayController {
 		if (user.role === 'user') {
 			throw new AppError('Only an admin can view a users role play', 403);
 		}
-
 		if (!userId) {
 			throw new AppError('User ID is required', 400);
 		}
@@ -136,12 +137,12 @@ export class RolePlayController {
 	getUserRolePlay = catchAsync(async (req: Request, res: Response) => {
 		const { scenarioId } = req.query;
 		const { user } = req;
+
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
-
 		if (!scenarioId) {
-			throw new AppError('Role Play ID is required', 400);
+			throw new AppError('Scenario ID is required', 400);
 		}
 
 		const [rolePlay] = await rolePlayRepository.findByScenarioIdAndUserId(scenarioId as string, user.id);
@@ -152,7 +153,7 @@ export class RolePlayController {
 			throw new AppError('You are not authorized to view this role play', 409);
 		}
 
-		return AppResponse(res, 200, toJSON(rolePlay), 'User Role Play retrieved successfully');
+		return AppResponse(res, 200, toJSON([rolePlay]), 'User Role Play retrieved successfully');
 	});
 }
 
