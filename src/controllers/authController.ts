@@ -129,8 +129,6 @@ class AuthController {
 			lastLogin: currentRequestTime.toJSDate(),
 		});
 
-		console.log('Set-Cookie headers:', res.get('Set-Cookie'));
-
 		return AppResponse(res, 200, toJSON([user]), 'User logged in successfully');
 	});
 

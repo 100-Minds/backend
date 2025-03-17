@@ -6,3 +6,4 @@ export * from './teamRepository';
 export * from './quizRepository';
 export * from './powerSkillRepository';
 export * from './learningJourneyRepository';
+export * from './lastWatchedRepository';

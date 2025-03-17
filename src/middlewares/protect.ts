@@ -4,11 +4,8 @@ import { catchAsync } from '@/middlewares';
 import type { NextFunction, Request, Response } from 'express';
 
 export const protect = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-	console.log('Incoming req.cookies:', req.cookies);
 	const accessToken = req.cookies?.accessToken || req.headers['authorization']?.split(' ')[1];
 	const refreshToken = req.cookies?.refreshToken || req.headers['x-refresh-token'];
-
-	console.log(accessToken, refreshToken);
 
 	const { currentUser, accessToken: newAccessToken } = await authenticate({
 		accessToken,

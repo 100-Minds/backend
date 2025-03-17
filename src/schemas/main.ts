@@ -68,6 +68,8 @@ export const mainSchema = z.object({
 	skillId: z.string().min(7),
 	videoUploadStatus: z.string(),
 	amount: z.number().positive(),
+	duration: z.string(),
+	lastWatched: z.string(),
 	// hideMyDetails: z.boolean().default(false),
 	message: z.string().min(10),
 	oldPassword: z.string().min(8),

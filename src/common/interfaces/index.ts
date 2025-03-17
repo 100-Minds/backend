@@ -13,3 +13,4 @@ export * from './quiz';
 export * from './emailQueue';
 export * from './powerSkill';
 export * from './learningJourney';
+export * from './lastWatched';

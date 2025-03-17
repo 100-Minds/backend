@@ -90,26 +90,6 @@ app.use(
 	})
 );
 
-// const allowedOrigins = [
-// 	'https://one00-minds.onrender.com',
-// 	'http://localhost:5173',
-// 	'http://localhost:3000',
-// 	'http://localhost:3001',
-// ];
-// const corsOptions = {
-// 	origin: (origin, callback) => {
-// 		console.log('CORS origin:', origin);
-
-// 		if (!origin || allowedOrigins.includes(origin)) {
-// 			callback(null, origin);
-// 		} else {
-// 			callback(new Error('Not allowed by CORS'));
-// 		}
-// 	},
-// 	credentials: true,
-// };
-// app.use(cors(corsOptions));
-
 //Configure Content Security Policy (CSP)
 //prevent Cross-Site Scripting (XSS) attacks by not allowing the loading of content from other domains.
 const contentSecurityPolicy = {

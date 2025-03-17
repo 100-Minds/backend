@@ -12,7 +12,7 @@ const connection = new IORedis({
 	maxRetriesPerRequest: null,
 	//enableOfflineQueue: false,
 	offlineQueue: false,
-	tls: { rejectUnauthorized: false },
+	//tls: { rejectUnauthorized: false },
 });
 
 if (connection) {
