@@ -7,3 +7,4 @@ export * from './rolePlayRouter';
 export * from './quizRouter';
 export * from './powerSkillRouter';
 export * from './learningJourneyRouter';
+export * from './lastWatchedRouter';
