@@ -73,7 +73,7 @@ export class LastWatchedController {
 			throw new AppError('Last watched video not found', 404);
 		}
 
-		return AppResponse(res, 200, toJSON(lastWatched), 'Last watched video retrieved successfully');
+		return AppResponse(res, 200, toJSON([lastWatched]), 'Last watched video retrieved successfully');
 	});
 }
 
