@@ -56,7 +56,7 @@ export class CourseController {
 			throw new AppError('Module not found', 404);
 		}
 
-		return AppResponse(res, 200, toJSON(module), 'Module successfully fetched');
+		return AppResponse(res, 200, toJSON([module]), 'Module successfully fetched');
 	});
 
 	getAllModules = catchAsync(async (req: Request, res: Response) => {
@@ -202,7 +202,22 @@ export class CourseController {
 			throw new AppError('Course not found', 404);
 		}
 
-		return AppResponse(res, 200, toJSON(course), 'Course successfully fetched');
+		return AppResponse(res, 200, toJSON([course]), 'Course successfully fetched');
+	});
+
+	getCourses = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+
+		const courses = await courseRepository.getCourses();
+		if (!courses || courses.length === 0) {
+			throw new AppError('No Course found', 404);
+		}
+
+		return AppResponse(res, 200, toJSON(courses), 'Courses successfully fetched');
 	});
 
 	updateCourse = catchAsync(async (req: Request, res: Response) => {
@@ -212,24 +227,20 @@ export class CourseController {
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
-
 		if (user.role === 'user') {
 			throw new AppError('Only an admin can update a course', 403);
 		}
-
-		if (!courseId || !name) {
-			throw new AppError('Course ID and name are required', 400);
+		if (!courseId) {
+			throw new AppError('Course ID is required', 400);
 		}
 
 		const course = await courseRepository.getCourse(courseId);
 		if (!course) {
 			throw new AppError('Course not found', 404);
 		}
-
 		if (course.userId !== user.id) {
 			throw new AppError('You are not authorized to update this course', 403);
 		}
-
 		if (course.isDeleted) {
 			throw new AppError('Course has already been deleted', 400);
 		}
@@ -243,9 +254,9 @@ export class CourseController {
 		}
 
 		const updatedCourse = await courseRepository.update(courseId, {
-			name,
-			scenarioId: scenarioRecord ? scenarioRecord.id : null,
-			scenarioName: scenarioRecord ? scenarioRecord.scenario : null,
+			...(name ? { name } : {}),
+			...(scenarioRecord ? { scenarioId: scenarioRecord.id } : null),
+			...(scenarioRecord ? { scenarioName: scenarioRecord.scenario } : null),
 		});
 
 		if (skills && Array.isArray(skills) && skills.length > 0) {
@@ -355,27 +366,6 @@ export class CourseController {
 		return AppResponse(res, 201, { signedUrl, key }, 'Lesson created successfully, use the signed URL to upload.');
 	});
 
-	getCourseLessons = catchAsync(async (req: Request, res: Response) => {
-		const { user } = req;
-		const { courseId } = req.query;
-
-		if (!user) {
-			throw new AppError('Please log in again', 400);
-		}
-
-		const course = await courseRepository.getCourse(courseId as string);
-		if (!course) {
-			throw new AppError('Course not found', 404);
-		}
-
-		const lessons = await courseRepository.getCourseLessons(courseId as string);
-		if (!lessons) {
-			throw new AppError('Lessons not found', 404);
-		}
-
-		return AppResponse(res, 200, toJSON(lessons), 'Chapters and lessons successfully fetched');
-	});
-
 	getCourseLesson = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { chapterId, courseId } = req.query;
@@ -394,7 +384,28 @@ export class CourseController {
 			throw new AppError('Lessons not found', 404);
 		}
 
-		return AppResponse(res, 200, toJSON(lessons), 'Chapters and lessons successfully fetched');
+		return AppResponse(res, 200, toJSON([lessons]), 'Chapters and lessons successfully fetched');
+	});
+
+	getCourseLessons = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { courseId } = req.query;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+
+		const course = await courseRepository.getCourse(courseId as string);
+		if (!course) {
+			throw new AppError('Course not found', 404);
+		}
+
+		const lessons = await courseRepository.getCourseLessons(courseId as string);
+		if (!lessons) {
+			throw new AppError('Lessons not found', 404);
+		}
+
+		return AppResponse(res, 200, toJSON([lessons]), 'Chapters and lessons successfully fetched');
 	});
 
 	getChapter = catchAsync(async (req: Request, res: Response) => {

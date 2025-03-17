@@ -66,9 +66,13 @@ class CourseRepository {
 		return result.length ? result[0] : null;
 	};
 
+	getCourses = async (): Promise<ICourse[] | null> => {
+		return await knexDb.table('course').select('*');
+	};
+
 	getModuleCourses = async (moduleId: string): Promise<ICourse[]> => {
 		return knexDb('course').where({ moduleId, isDeleted: false }).orderBy('created_at', 'asc');
-	}
+	};
 
 	deleteCourse = async (id: string) => {
 		return await knexDb.table('course').where({ id }).update({ isDeleted: true }).returning('*');
@@ -157,13 +161,17 @@ class CourseRepository {
 
 	//lesson
 	getCourseLessons = async (courseId: string): Promise<ILesson | null> => {
-		const course = await knexDb.table('course').where({ id: courseId, isDeleted: false }).first();
+		const course = await knexDb
+			.table('course')
+			.select('id', 'name', 'scenarioName', 'scenarioId', 'moduleId', 'isDeleted', 'created_at')
+			.where({ id: courseId, isDeleted: false })
+			.first();
 		if (!course) {
 			return null;
 		}
 
 		const chapters = await knexDb('course_chapters')
-			.select('*')
+			.select('id', 'title', 'chapterNumber', 'created_at')
 			.where('courseId', courseId)
 			.where('isDeleted', false)
 			.orderBy('chapterNumber', 'asc');
@@ -173,7 +181,10 @@ class CourseRepository {
 		}
 
 		const chapterIds = chapters.map((chapter) => chapter.id);
-		const videos = await knexDb('course_videos').select('*').whereIn('chapterId', chapterIds).where('isDeleted', false);
+		const videos = await knexDb('course_videos')
+			.select('id', 'videoURL', 'isDeleted', 'duration', 'chapterId', 'uploadStatus', 'created_at')
+			.whereIn('chapterId', chapterIds)
+			.where('isDeleted', false);
 
 		// Group videos by chapterId for nesting
 		const videosByChapter: { [key: string]: ICourseVideo[] } = {};
@@ -201,21 +212,21 @@ class CourseRepository {
 
 	getCourseLesson = async (courseId: string, chapterId: string): Promise<IChapterLesson | null> => {
 		const course = await knexDb('course').select('id', 'name').where({ id: courseId, isDeleted: false }).first();
-
 		if (!course) {
 			return null;
 		}
 
 		const chapter = await knexDb('course_chapters')
-			.select('*')
+			.select('id', 'title', 'chapterNumber', 'courseId', 'isDeleted', 'created_at')
 			.where({ id: chapterId, courseId, isDeleted: false })
 			.first();
-
 		if (!chapter) {
 			return null;
 		}
 
-		const videos = await knexDb('course_videos').select('*').where({ chapterId, isDeleted: false });
+		const videos = await knexDb('course_videos')
+			.select('id', 'videoURL', 'isDeleted', 'duration', 'chapterId', 'uploadStatus', 'created_at')
+			.where({ chapterId, isDeleted: false });
 
 		const lesson: IChapterLesson = {
 			course: {
