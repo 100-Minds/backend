@@ -155,6 +155,13 @@ class LearningJourneyRepository {
 		return newLearningJourney;
 	};
 
+	getUserLearningJourneyByChapterId = async (userId: string, chapterId: string) => {
+		const learningJourney = await knexDb('user_learning_journey')
+			.where({ userId, chapterId })
+			.select('moduleId', 'moduleName', 'courseId', 'courseName', 'chapterId', 'scenarioId', 'scenarioName');
+		return learningJourney;
+	};
+
 	getAllUserLearningJourney = async (userId: string) => {
 		const learningJourney = await knexDb('learning_journey').select(
 			'moduleId',

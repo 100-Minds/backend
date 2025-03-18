@@ -74,12 +74,20 @@ class LearningJourneyController {
 			throw new AppError('Chapter is deleted', 404);
 		}
 
+		const userLearningJourneyExists = await learningJourneyRepository.getUserLearningJourneyByChapterId(
+			user.id,
+			chapterId
+		);
+		if (userLearningJourneyExists && userLearningJourneyExists.length > 0) {
+			throw new AppError('User learning journey already exists', 400);
+		}
+
 		const learningJourney = await learningJourneyRepository.addToUserLearningJourney(user.id, chapterId);
 		if (!learningJourney) {
 			throw new AppError('Failed to add learning journey', 500);
 		}
 
-		return AppResponse(res, 201, toJSON(learningJourney), 'Learning journey added successfully to user data');
+		return AppResponse(res, 201, toJSON([learningJourney]), 'Learning journey added successfully to user data');
 	});
 
 	getAllUserLearningJourney = catchAsync(async (req: Request, res: Response) => {
