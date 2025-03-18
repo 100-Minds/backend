@@ -498,11 +498,9 @@ export class CourseController {
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
-
 		if (user.role === 'user') {
 			throw new AppError('Only an admin can update an uploaded video', 403);
 		}
-
 		if (!key) {
 			throw new AppError('Video key is required', 400);
 		}
@@ -534,6 +532,8 @@ export class CourseController {
 		videoUploadStatus === 'completed'
 			? await videoUploadSuccessfulEmail(user.email, chapter.chapterNumber, course.name)
 			: await videoUploadFailedEmail(user.email, chapter.chapterNumber, course.name);
+
+		await Promise.all([courseRepository.hardDeleteChapter(chapter.id), courseRepository.hardDeleteVideo(video.id)]);
 
 		return AppResponse(res, 200, null, 'Video upload confirmed');
 	});

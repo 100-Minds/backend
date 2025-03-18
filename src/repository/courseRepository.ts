@@ -126,6 +126,10 @@ class CourseRepository {
 		return await knexDb.table('course_chapters').where({ id }).update({ isDeleted: true }).returning('*');
 	};
 
+	hardDeleteChapter = async (id: string) => {
+		return await knexDb.table('course_chapters').where({ id }).delete().returning('*');
+	};
+
 	updateChapter = async (id: string, payload: Partial<ICourseChapter>): Promise<ICourseChapter[]> => {
 		return await knexDb('course_chapters')
 			.where({ id })
@@ -143,6 +147,10 @@ class CourseRepository {
 		return result.length ? result[0] : null;
 	};
 
+	hardDeleteVideo = async (id: string) => {
+		return await knexDb.table('course_videos').where({ id }).delete().returning('*');
+	};
+
 	getVideoByChapterId = async (chapterId: string): Promise<ICourseVideo | null> => {
 		const result = await knexDb.table('course_videos').where({ chapterId }).select('*');
 		return result.length ? result[0] : null;
@@ -155,7 +163,7 @@ class CourseRepository {
 			.returning('*');
 	};
 
-	getVideoByKey = async (key: string) => {
+	getVideoByKey = async (key: string): Promise<ICourseVideo | null> => {
 		return await knexDb('course_videos').where({ videoURL: key }).first();
 	};
 
