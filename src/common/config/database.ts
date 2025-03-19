@@ -1,7 +1,7 @@
 import knex, { Knex } from 'knex';
 import { ENVIRONMENT } from './environment';
 
-const knexConfig: Knex.Config = {
+export const knexConfig: Knex.Config = {
 	client: 'pg',
 	connection: {
 		host: ENVIRONMENT.DB.HOST,
@@ -15,8 +15,8 @@ const knexConfig: Knex.Config = {
 	pool: { min: 1, max: 5, idleTimeoutMillis: 600000, propagateCreateError: false },
 	migrations: {
 		tableName: 'knex_migrations',
-		directory: './migrations',
-		extension: '.ts',
+		directory: process.env.NODE_ENV === 'production' ? './migrations' : './migrations',
+		extension: process.env.NODE_ENV === 'production' ? 'js' : 'ts',
 	},
 	acquireConnectionTimeout: 5000,
 };
