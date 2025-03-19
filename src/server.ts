@@ -10,7 +10,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 ///////////////////////////////////////////////////////////////////////
-import { ENVIRONMENT, connectDb, disconnectDb, knexDb } from '@/common/config';
+import { ENVIRONMENT, connectDb, disconnectDb } from '@/common/config';
 import '@/common/interfaces/request';
 import { AppError, logger, stream } from '@/common/utils';
 import { errorHandler } from '@/controllers';
@@ -234,19 +234,19 @@ async function shutdown() {
 	process.exit(0);
 }
 
-async function migrate() {
-	try {
-		await knexDb.migrate.latest();
-		console.log('Migrations completed!');
-	} catch (error) {
-		console.error('Migration failed:', error);
-	}
-}
+// async function migrate() {
+// 	try {
+// 		await knexDb.migrate.latest();
+// 		console.log('Migrations completed!');
+// 	} catch (error) {
+// 		console.error('Migration failed:', error);
+// 	}
+// }
 
-migrate().catch((err) => {
-	console.error(err);
-	process.exit(1);
-});
+// migrate().catch((err) => {
+// 	console.error(err);
+// 	process.exit(1);
+// });
 
 // graceful shutdown on SIGINT and SIGTERM
 process.on('SIGINT', shutdown);
