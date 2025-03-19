@@ -1,7 +1,9 @@
+console.log('Current directory:', process.cwd());
 import { LearningStatus } from '@/common/constants/index';
 import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
+	console.log('Current directory:', process.cwd());
 	return knex.schema.createTable('user_learning_journey', (table) => {
 		table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
 		table.uuid('userId').references('id').inTable('users').onDelete('CASCADE').notNullable();
