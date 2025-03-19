@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { MemberType, StatusRequest } from '@/common/constants';
+import { MemberType, StatusRequest } from '../../src/common/constants';
 
 export async function up(knex: Knex): Promise<void> {
 	return knex.schema.createTable('team_members', (table) => {

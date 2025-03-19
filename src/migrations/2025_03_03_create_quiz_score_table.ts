@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { QuizDifficulty } from '@/common/constants';
+import { QuizDifficulty } from '../../src/common/constants';
 
 export async function up(knex: Knex): Promise<void> {
 	return knex.schema.createTable('quiz_scores', (table) => {

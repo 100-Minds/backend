@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { Role } from '@/common/constants';
+import { Role } from '../../src/common/constants';
 
 export async function up(knex: Knex): Promise<void> {
 	return knex.schema.createTable('users', (table) => {

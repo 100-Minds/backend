@@ -1,4 +1,4 @@
-import { VideoUploadStatus } from '@/common/constants';
+import { VideoUploadStatus } from '../../src/common/constants';
 import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
