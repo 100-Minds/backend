@@ -16,6 +16,7 @@ const knexConfig: Knex.Config = {
 	migrations: {
 		tableName: 'knex_migrations',
 		directory: './src/migrations',
+		extension: '.ts',
 	},
 	acquireConnectionTimeout: 5000,
 };

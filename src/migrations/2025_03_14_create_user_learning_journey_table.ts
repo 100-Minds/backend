@@ -1,4 +1,4 @@
-import { LearningStatus } from '../../src/common/constants';
+import { LearningStatus } from '@/common/constants';
 import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
