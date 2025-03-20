@@ -10,6 +10,7 @@ export interface StructuredCourse {
 export interface StructuredModule {
 	moduleId: string;
 	moduleName: string;
+	isRequired: boolean;
 	courses: Record<string, StructuredCourse>;
 }
 

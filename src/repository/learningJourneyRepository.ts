@@ -51,7 +51,7 @@ class LearningJourneyRepository {
 
 	getAllLearningJourney = async () => {
 		const learningJourneyRecords = await knexDb('learning_journey')
-			.select('moduleId', 'moduleName', 'courseId', 'courseName', 'scenarioId', 'scenarioName')
+			.select('moduleId', 'moduleName', 'courseId', 'courseName', 'scenarioId', 'scenarioName' , 'isRequired')
 			.orderBy('created_at', 'asc');
 
 		const structuredLearning: Record<string, StructuredModule> = {};
@@ -62,6 +62,7 @@ class LearningJourneyRepository {
 				structuredLearning[record.moduleId] = {
 					moduleId: record.moduleId,
 					moduleName: record.moduleName,
+					isRequired: record.isRequired,
 					courses: {},
 				};
 			}
