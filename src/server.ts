@@ -83,6 +83,7 @@ app.use(
 	cors({
 		origin: [
 			'https://one00-minds.onrender.com',
+			'https://app.100-minds.com',
 			'http://localhost:5173',
 			'http://localhost:3000',
 			'http://localhost:3001',
