@@ -533,7 +533,8 @@ export class CourseController {
 			? await videoUploadSuccessfulEmail(user.email, chapter.chapterNumber, course.name)
 			: await videoUploadFailedEmail(user.email, chapter.chapterNumber, course.name);
 
-		await Promise.all([courseRepository.hardDeleteChapter(chapter.id), courseRepository.hardDeleteVideo(video.id)]);
+		videoUploadStatus === 'failed' &&
+			(await Promise.all([courseRepository.hardDeleteChapter(chapter.id), courseRepository.hardDeleteVideo(video.id)]));
 
 		return AppResponse(res, 200, null, 'Video upload confirmed');
 	});
