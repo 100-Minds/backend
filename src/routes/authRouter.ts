@@ -317,6 +317,180 @@ router.post('/sign-up', authController.signUp);
 router.post('/sign-in', authController.signIn);
 /**
  * @openapi
+ * /auth/admin/sign-in:
+ *   post:
+ *     summary: Sign in an admin user
+ *     description: Authenticates an admin user with email and password. On the first request (without OTP), sends an OTP to the user's email. On the second request (with OTP), validates the OTP and completes sign-in, returning user data with access and refresh tokens as cookies.
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             oneOf:
+ *               - type: object
+ *                 required:
+ *                   - email
+ *                   - password
+ *                 properties:
+ *                   email:
+ *                     type: string
+ *                     format: email
+ *                     example: 1@1.com
+ *                   password:
+ *                     type: string
+ *                     example: password123
+ *                 description: Initial request to trigger OTP generation and email
+ *               - type: object
+ *                 required:
+ *                   - email
+ *                   - password
+ *                   - otp
+ *                 properties:
+ *                   email:
+ *                     type: string
+ *                     format: email
+ *                     example: 1@1.com
+ *                   password:
+ *                     type: string
+ *                     example: password123
+ *                   otp:
+ *                     type: string
+ *                     example: 123456
+ *                     description: OTP received via email, required to complete sign-in
+ *                 description: Second request to verify OTP and complete sign-in
+ *     responses:
+ *       200:
+ *         description: OTP sent or user signed in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - type: object
+ *                   properties:
+ *                     status:
+ *                       type: string
+ *                       example: success
+ *                     data:
+ *                       type: null
+ *                       example: null
+ *                     message:
+ *                       type: string
+ *                       example: OTP sent to your email. Please verify to complete sign-in.
+ *                   example:
+ *                     status: success
+ *                     data: null
+ *                     message: OTP sent to your email. Please verify to complete sign-in.
+ *                   description: Response when OTP is sent (initial request without OTP)
+ *                 - type: object
+ *                   properties:
+ *                     status:
+ *                       type: string
+ *                       example: success
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             format: uuid
+ *                             example: 1165f172-3db2-4eb9-939b-34a5e6efd6e6
+ *                           email:
+ *                             type: string
+ *                             format: email
+ *                             example: 1@1.com
+ *                           username:
+ *                             type: string
+ *                             example: Davheed
+ *                           firstName:
+ *                             type: string
+ *                             example: David
+ *                           lastName:
+ *                             type: string
+ *                             example: Okonkwo
+ *                           photo:
+ *                             type: string
+ *                             nullable: true
+ *                             example: null
+ *                           role:
+ *                             type: string
+ *                             enum:
+ *                               - user
+ *                               - admin
+ *                             example: user
+ *                           isSuspended:
+ *                             type: boolean
+ *                             example: false
+ *                           isDeleted:
+ *                             type: boolean
+ *                             example: false
+ *                           created_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2025-03-07T00:36:19.842Z
+ *                     message:
+ *                       type: string
+ *                       example: User logged in successfully
+ *                   example:
+ *                     status: success
+ *                     data:
+ *                       - id: 1165f172-3db2-4eb9-939b-34a5e6efd6e6
+ *                         email: 1@1.com
+ *                         username: Davheed
+ *                         firstName: David
+ *                         lastName: Okonkwo
+ *                         photo: null
+ *                         role: user
+ *                         isSuspended: false
+ *                         isDeleted: false
+ *                         created_at: 2025-03-07T00:36:19.842Z
+ *                     message: User logged in successfully
+ *                   description: Response when sign-in is completed with valid OTP
+ *         headers:
+ *           Set-Cookie:
+ *             schema:
+ *               type: string
+ *               example: accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; Path=/; HttpOnly, refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; Path=/; HttpOnly
+ *             description: Set only when OTP is valid and sign-in is completed
+ *       401:
+ *         description: Unauthorized - Various authentication failures
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Incomplete login data
+ *                   enum:
+ *                     - Unauthorized access
+ *                     - Incomplete login data
+ *                     - login retries exceeded!
+ *                     - Invalid credentials
+ *                     - Your account is currently suspended
+ *                     - Invalid or expired OTP
+ *       404:
+ *         description: Not Found - User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: User not found
+ */
+router.post('/admin/sign-in', authController.adminSignIn);
+/**
+ * @openapi
  * /auth/password/forgot:
  *   post:
  *     summary: Request a password reset
