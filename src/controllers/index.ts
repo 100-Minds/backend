@@ -9,3 +9,4 @@ export * from './quizController';
 export * from './powerSkillController';
 export * from './learningJourneyController';
 export * from './lastWatchedController';
+export * from './statsController';

@@ -7,3 +7,4 @@ export * from './quizRepository';
 export * from './powerSkillRepository';
 export * from './learningJourneyRepository';
 export * from './lastWatchedRepository';
+export * from './statsRepository';

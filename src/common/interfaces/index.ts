@@ -14,3 +14,4 @@ export * from './emailQueue';
 export * from './powerSkill';
 export * from './learningJourney';
 export * from './lastWatched';
+export * from './statistics';
