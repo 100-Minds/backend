@@ -3,6 +3,7 @@ import { AppError, AppResponse, toJSON, uploadPictureFile } from '@/common/utils
 import { catchAsync } from '@/middlewares';
 import { userRepository } from '@/repository';
 import { IUser } from '@/common/interfaces';
+import { Role } from '@/common/constants';
 
 export class UserController {
 	getProfile = catchAsync(async (req: Request, res: Response) => {
@@ -26,7 +27,6 @@ export class UserController {
 		if (!user) {
 			throw new AppError('Please log in again', 401);
 		}
-
 		if (user.role !== 'admin') {
 			throw new AppError('Only admins can view all users', 403);
 		}
@@ -65,7 +65,6 @@ export class UserController {
 		}
 
 		const updateProfile = await userRepository.update(user.id, updateData);
-
 		if (!updateProfile) {
 			throw new AppError('Failed to update profile', 500);
 		}
@@ -80,7 +79,6 @@ export class UserController {
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
-
 		if (!file) {
 			throw new AppError('File is required', 400);
 		}
@@ -104,6 +102,58 @@ export class UserController {
 		}
 
 		return AppResponse(res, 200, toJSON(updateProfile), 'Profile picture updated successfully');
+	});
+
+	suspendUser = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { suspend, userId } = req.body;
+
+		if (!user) {
+			throw new AppError('Please log in again', 401);
+		}
+		if (user.role === 'user') {
+			throw new AppError('Only admins can modify user data', 403);
+		}
+
+		const extinguishUser = await userRepository.findById(userId);
+		if (!extinguishUser) {
+			throw new AppError('User not found', 404);
+		}
+
+		const suspendUser = await userRepository.update(userId, {
+			isSuspended: suspend ? true : false,
+		});
+		if (!suspendUser) {
+			throw new AppError(`Failed to ${suspend ? 'suspend' : 'un suspend'} user`, 500);
+		}
+
+		return AppResponse(res, 200, null, `User ${suspend ? 'suspended' : 'unsuspended'} successfully`);
+	});
+
+	makeAdmin = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { makeAdmin, userId } = req.body;
+
+		if (!user) {
+			throw new AppError('Please log in again', 401);
+		}
+		if (user.role === 'user') {
+			throw new AppError('Only admins can assign admin roles', 403);
+		}
+
+		const extinguishUser = await userRepository.findById(userId);
+		if (!extinguishUser) {
+			throw new AppError('User not found', 404);
+		}
+
+		const suspendUser = await userRepository.update(userId, {
+			role: makeAdmin ? Role.Admin : Role.User,
+		});
+		if (!suspendUser) {
+			throw new AppError(`Failed to ${makeAdmin ? 'promote' : 'demote'} user`, 500);
+		}
+
+		return AppResponse(res, 200, null, `User ${makeAdmin ? 'promoted' : 'demoted'} successfully`);
 	});
 }
 

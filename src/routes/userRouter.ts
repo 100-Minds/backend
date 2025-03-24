@@ -523,5 +523,225 @@ router.post('/update-user', userController.updateProfile);
  *                   example: Failed to update profile picture
  */
 router.post('/upload-profile-picture', multerUpload.single('photo'), userController.uploadProfilePicture);
+/**
+ * @openapi
+ * /user/suspend-user:
+ *   post:
+ *     summary: Suspend or unsuspend a user
+ *     description: Suspends or unsuspends a user based on the provided user ID and suspend flag. Only accessible to admin users. Requires authentication via a valid access token.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - suspend
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *                 example: 1165f172-3db2-4eb9-939b-34a5e6efd6e6
+ *                 description: The ID of the user to suspend or unsuspend
+ *               suspend:
+ *                 type: boolean
+ *                 example: true
+ *                 description: Set to true to suspend the user, false to unsuspend
+ *             example:
+ *               userId: 1165f172-3db2-4eb9-939b-34a5e6efd6e6
+ *               suspend: true
+ *     responses:
+ *       200:
+ *         description: User suspension status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: User suspended successfully
+ *               example:
+ *                 status: success
+ *                 data: null
+ *                 message: User suspended successfully
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Please log in again
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Only admins can modify user data
+ *       404:
+ *         description: Not Found - User does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: User not found
+ *       500:
+ *         description: Internal Server Error - Suspension update failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Failed to suspend user
+ *                   enum:
+ *                     - Failed to suspend user
+ *                     - Failed to unsuspend user
+ */
+router.post('/suspend-user', userController.suspendUser);
+/**
+ * @openapi
+ * /user/make-admin:
+ *   post:
+ *     summary: Promote or demote a user to/from admin role
+ *     description: Changes a user's role to admin or back to regular user based on the provided user ID and makeAdmin flag. Only accessible to admin users. Requires authentication via a valid access token.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - makeAdmin
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *                 example: 1165f172-3db2-4eb9-939b-34a5e6efd6e6
+ *                 description: The ID of the user to promote or demote
+ *               makeAdmin:
+ *                 type: boolean
+ *                 example: true
+ *                 description: Set to true to promote the user to admin, false to demote to regular user
+ *             example:
+ *               userId: 1165f172-3db2-4eb9-939b-34a5e6efd6e6
+ *               makeAdmin: true
+ *     responses:
+ *       200:
+ *         description: User role updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: User promoted successfully
+ *               example:
+ *                 status: success
+ *                 data: null
+ *                 message: User promoted successfully
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Please log in again
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Only admins can assign admin roles
+ *       404:
+ *         description: Not Found - User does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: User not found
+ *       500:
+ *         description: Internal Server Error - Role update failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Failed to promote user
+ *                   enum:
+ *                     - Failed to promote user
+ *                     - Failed to demote user
+ */
+router.post('/make-admin', userController.makeAdmin);
 
 export { router as userRouter };
