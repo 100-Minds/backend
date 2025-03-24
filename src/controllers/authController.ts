@@ -50,7 +50,6 @@ class AuthController {
 			username,
 			ipAddress: req.ip,
 		});
-
 		if (!user) {
 			throw new AppError('Failed to create user', 500);
 		}

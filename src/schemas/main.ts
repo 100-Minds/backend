@@ -22,8 +22,8 @@ export const mainSchema = z.object({
 			message:
 				'Last name must be in sentence case, can include hyphen, and apostrophes (e.g., "Ali", "Ade-Bright" or "Smith\'s").',
 		}),
-	username: z.string().min(3).trim(),
-	email: z.string().email('Please enter a valid email address!'),
+	username: z.string().min(3).trim().toLowerCase(),
+	email: z.string().email('Please enter a valid email address!').toLowerCase(),
 	password: z
 		.string()
 		.min(8, 'Password must have at least 8 characters!')
