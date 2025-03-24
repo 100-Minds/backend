@@ -7,6 +7,7 @@ import {
 	ILesson,
 	IChapterLesson,
 	IModule,
+	ICourseWithModuleName,
 } from '@/common/interfaces';
 import { DateTime } from 'luxon';
 
@@ -65,9 +66,12 @@ class CourseRepository {
 		const result = await knexDb.table('course').where({ id }).select('*');
 		return result.length ? result[0] : null;
 	};
-
-	getCourses = async (): Promise<ICourse[] | null> => {
-		return await knexDb.table('course').select('*');
+	
+	getCourses = async (): Promise<ICourseWithModuleName[] | null> => {
+		return await knexDb
+			.table('course')
+			.select('course.*', 'course_module.name as moduleName')
+			.leftJoin('course_module', 'course.moduleId', 'course_module.id');
 	};
 
 	getModuleCourses = async (moduleId: string): Promise<ICourse[]> => {

@@ -42,6 +42,10 @@ export interface ICourseVideo {
 	updated_at?: Date;
 }
 
+export interface ICourseWithModuleName extends ICourse {
+	moduleName: string | null;
+}
+
 export interface ILesson {
 	course: ICourse;
 	chapters: {
