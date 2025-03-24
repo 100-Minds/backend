@@ -114,6 +114,9 @@ export class UserController {
 		if (user.role === 'user') {
 			throw new AppError('Only admins can modify user data', 403);
 		}
+		if (user.id === userId) {
+			throw new AppError('You cant perform this operation on your account', 403);
+		}
 
 		const extinguishUser = await userRepository.findById(userId);
 		if (!extinguishUser) {
@@ -139,6 +142,9 @@ export class UserController {
 		}
 		if (user.role === 'user') {
 			throw new AppError('Only admins can assign admin roles', 403);
+		}
+		if (user.id === userId) {
+			throw new AppError('You cant perform this operation on your account', 403);
 		}
 
 		const extinguishUser = await userRepository.findById(userId);
