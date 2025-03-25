@@ -185,7 +185,7 @@ class CourseRepository {
 		}
 
 		const chapters = await knexDb('course_chapters')
-			.select('id', 'title', 'chapterNumber', 'created_at')
+			.select('id', 'title', 'description', 'chapterNumber', 'created_at')
 			.where('courseId', courseId)
 			.where('isDeleted', false)
 			.orderBy('chapterNumber', 'asc');
@@ -214,6 +214,7 @@ class CourseRepository {
 			chapters: chapters.map((chapter) => ({
 				id: chapter.id,
 				title: chapter.title,
+				description: chapter.description,
 				chapterNumber: chapter.chapterNumber,
 				videos: videosByChapter[chapter.id] || [],
 				created_at: chapter.created_at,
@@ -231,7 +232,7 @@ class CourseRepository {
 		}
 
 		const chapter = await knexDb('course_chapters')
-			.select('id', 'title', 'chapterNumber', 'courseId', 'isDeleted', 'created_at')
+			.select('id', 'title', 'description', 'chapterNumber', 'courseId', 'isDeleted', 'created_at')
 			.where({ id: chapterId, courseId, isDeleted: false })
 			.first();
 		if (!chapter) {
