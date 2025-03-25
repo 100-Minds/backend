@@ -40,7 +40,7 @@ class UserRepository {
 	};
 
 	findAll = async () => {
-		return await knexDb.table('users').orderBy('created_at', 'asc');
+		return await knexDb.table('users').orderBy('created_at', 'desc');
 	};
 
 	findByRole = async (role: string) => {
