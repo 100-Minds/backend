@@ -72,7 +72,7 @@ class CourseRepository {
 			.table('course')
 			.select('course.*', 'course_module.name as moduleName')
 			.leftJoin('course_module', 'course.moduleId', 'course_module.id')
-			.where({ isDeleted: false });
+			.where('course.isDeleted', false);
 	};
 
 	getModuleCourses = async (moduleId: string): Promise<ICourse[]> => {
