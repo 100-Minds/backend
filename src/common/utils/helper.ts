@@ -148,6 +148,7 @@ const setCookie = (
 	maxAge: number
 ) => {
 	const clientType = isMobile(req);
+	console.log(clientType);
 	if (clientType === 'mobile') {
 		if (name === 'accessToken') res.locals.newAccessToken = value;
 		if (name === 'refreshToken') res.locals.newRefreshToken = value;
