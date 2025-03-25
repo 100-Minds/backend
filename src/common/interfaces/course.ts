@@ -12,6 +12,7 @@ export interface IModule {
 export interface ICourse {
 	id: string;
 	name: string;
+	courseImage: string;
 	userId: string;
 	moduleId: string;
 	scenarioName: string | null;
@@ -24,6 +25,7 @@ export interface ICourse {
 export interface ICourseChapter {
 	id: string;
 	title: string;
+	description: string;
 	courseId: string;
 	chapterNumber: number;
 	isDeleted: boolean;

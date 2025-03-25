@@ -4,6 +4,7 @@ import {
 	AppResponse,
 	generatePresignedUrl,
 	toJSON,
+	uploadPictureFile,
 	videoUploadFailedEmail,
 	videoUploadSuccessfulEmail,
 } from '@/common/utils';
@@ -11,7 +12,7 @@ import { catchAsync } from '@/middlewares';
 import { courseRepository, powerSkillRepository, scenarioRepository } from '@/repository';
 import { VideoUploadStatus } from '@/common/constants';
 import { ENVIRONMENT } from '@/common/config';
-import { IScenario } from '@/common/interfaces';
+import { ICourse, ICourseChapter, IScenario } from '@/common/interfaces';
 
 export class CourseController {
 	createModule = catchAsync(async (req: Request, res: Response) => {
@@ -51,7 +52,7 @@ export class CourseController {
 		if (!moduleId) {
 			throw new AppError('Module ID is required', 400);
 		}
-		
+
 		const module = await courseRepository.getModule(moduleId as string);
 		if (!module) {
 			throw new AppError('Module not found', 404);
@@ -137,9 +138,13 @@ export class CourseController {
 	createCourse = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { name, scenario, moduleId, skills } = req.body;
+		const { file } = req;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
+		}
+		if (!file) {
+			throw new AppError('Course image is required', 400);
 		}
 		if (user.role === 'user') {
 			throw new AppError('Only an admin can create a course', 403);
@@ -171,8 +176,15 @@ export class CourseController {
 			}
 		}
 
+		const { secureUrl: courseImage } = await uploadPictureFile({
+			fileName: `course-image/${Date.now()}-${file.originalname}`,
+			buffer: file.buffer,
+			mimetype: file.mimetype,
+		});
+
 		const [course] = await courseRepository.create({
 			name,
+			courseImage,
 			userId: user.id,
 			moduleId,
 			scenarioId: scenarioRecord ? scenarioRecord.id : null,
@@ -228,6 +240,7 @@ export class CourseController {
 	updateCourse = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { name, courseId, scenario, skills } = req.body;
+		const { file } = req;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -258,11 +271,36 @@ export class CourseController {
 			}
 		}
 
-		const updatedCourse = await courseRepository.update(courseId, {
-			...(name ? { name } : {}),
-			...(scenarioRecord ? { scenarioId: scenarioRecord.id } : null),
-			...(scenarioRecord ? { scenarioName: scenarioRecord.scenario } : null),
-		});
+		let updatedCourse: ICourse[] | null;
+		if (file) {
+			const { secureUrl: courseImage } = await uploadPictureFile({
+				fileName: `course-image/${Date.now()}-${file.originalname}`,
+				buffer: file.buffer,
+				mimetype: file.mimetype,
+			});
+
+			updatedCourse = await courseRepository.update(courseId, {
+				...(name ? { name } : {}),
+				...(scenarioRecord ? { scenarioId: scenarioRecord.id } : null),
+				...(scenarioRecord ? { scenarioName: scenarioRecord.scenario } : null),
+				courseImage,
+			});
+		} else {
+			updatedCourse = await courseRepository.update(courseId, {
+				...(name ? { name } : {}),
+				...(scenarioRecord ? { scenarioId: scenarioRecord.id } : null),
+				...(scenarioRecord ? { scenarioName: scenarioRecord.scenario } : null),
+			});
+		}
+		if (!updatedCourse) {
+			throw new AppError('Failed to update course', 500);
+		}
+
+		// const updatedCourse = await courseRepository.update(courseId, {
+		// 	...(name ? { name } : {}),
+		// 	...(scenarioRecord ? { scenarioId: scenarioRecord.id } : null),
+		// 	...(scenarioRecord ? { scenarioName: scenarioRecord.scenario } : null),
+		// });
 
 		if (skills && Array.isArray(skills) && skills.length > 0) {
 			const skillRecords = await powerSkillRepository.findSkillsByIds(skills);
@@ -319,7 +357,7 @@ export class CourseController {
 
 	createLesson = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { title, courseId, fileName, fileType, fileSize, videoLength } = req.body;
+		const { title, description, courseId, fileName, fileType, fileSize, videoLength } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -329,8 +367,11 @@ export class CourseController {
 			throw new AppError('Only an admin can create a chapter', 403);
 		}
 
-		if (!courseId || !title || !fileName || !fileType || !fileSize || !videoLength) {
-			throw new AppError('CourseId, title, fileName, fileType, fileSize and videoLength are required', 400);
+		if (!courseId || !title || !description || !fileName || !fileType || !fileSize || !videoLength) {
+			throw new AppError(
+				'CourseId, title, description, fileName, fileType, fileSize and videoLength are required',
+				400
+			);
 		}
 
 		const course = await courseRepository.getCourse(courseId);
@@ -348,7 +389,12 @@ export class CourseController {
 		const maxChapterResult = await courseRepository.getCourseMaxChapter(courseId);
 		const maxNumber = maxChapterResult?.maxNumber ?? 0;
 
-		const [chapter] = await courseRepository.createChapter({ title, courseId, chapterNumber: maxNumber + 1 });
+		const [chapter] = await courseRepository.createChapter({
+			title,
+			description,
+			courseId,
+			chapterNumber: maxNumber + 1,
+		});
 		if (!chapter) {
 			throw new AppError('Failed to create chapter', 500);
 		}
@@ -454,7 +500,7 @@ export class CourseController {
 
 	updateLesson = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { title, chapterId, fileName, fileType, fileSize, videoLength } = req.body;
+		const { title, description, chapterId, fileName, fileType, fileSize, videoLength } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -475,8 +521,12 @@ export class CourseController {
 			throw new AppError('Chapter has already been deleted', 400);
 		}
 
-		if (title) {
-			const updatedChapter = await courseRepository.updateChapter(chapterId, { title });
+		const updateFields: Partial<ICourseChapter> = {};
+		if (title) updateFields.title = title;
+		if (description) updateFields.description = description;
+
+		if (Object.keys(updateFields).length > 0) {
+			const updatedChapter = await courseRepository.updateChapter(chapterId, updateFields);
 			if (!updatedChapter) {
 				throw new AppError('Failed to update chapter', 500);
 			}

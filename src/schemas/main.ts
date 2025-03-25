@@ -44,6 +44,7 @@ export const mainSchema = z.object({
 	title: z.string().min(3).trim(),
 	teamId: z.string().min(7),
 	courseId: z.string().min(7),
+	description: z.string().min(7),
 	memberId: z.string().min(7),
 	chapterId: z.string().min(7),
 	videoId: z.string().min(7),

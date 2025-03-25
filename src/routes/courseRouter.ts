@@ -1,3 +1,4 @@
+import { multerUpload } from '@/common/config';
 import { courseController } from '@/controllers';
 import { protect } from '@/middlewares/protect';
 import express from 'express';
@@ -766,7 +767,7 @@ router.get('/get-courses', courseController.getCourses);
  * /course/create-course:
  *   post:
  *     summary: Create a new course
- *     description: Creates a new course with associated module, scenario, and power skills. Only admins can create courses. Requires authentication via a valid access token. The course details are provided in the request body.
+ *     description: Creates a new course with associated module, scenario, and power skills. Only admins can create courses. Requires authentication via a valid access token. The course details are provided in the request body and the request includes a scenario name and an image file.
  *     tags:
  *       - Course
  *     security:
@@ -774,18 +775,23 @@ router.get('/get-courses', courseController.getCourses);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *          multipart/form-data:
  *           schema:
  *             type: object
  *             required:
  *               - name
  *               - moduleId
  *               - skills
+ *               - file
  *             properties:
  *               name:
  *                 type: string
  *                 example: "PS102 Personal Effectiveness and Productivity"
  *                 description: The name of the course
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: The image file for the course (e.g., PNG, JPG)
  *               moduleId:
  *                 type: string
  *                 format: uuid
@@ -826,6 +832,10 @@ router.get('/get-courses', courseController.getCourses);
  *                         type: string
  *                         example: "PS102 Personal Effectiveness and Productivity"
  *                         description: The name of the course
+ *                       courseImage:
+ *                         type: string
+ *                         example: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1741394743259-GK5kZ7xXMAEltG9.png
+ *                         description: Secure URL of the uploaded course image
  *                       userId:
  *                         type: string
  *                         format: uuid
@@ -862,6 +872,7 @@ router.get('/get-courses', courseController.getCourses);
  *                 data:
  *                   - id: abfb6988-c506-47f2-9fec-000ce3b35694
  *                     name: "PS102 Personal Effectiveness and Productivity"
+ *                     courseImage: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1741394743259-GK5kZ7xXMAEltG9.png
  *                     userId: 0af8edf7-e4e6-4774-9dac-4ce104ace38c
  *                     scenarioName: "Intermediate"
  *                     scenarioId: 2c093d7a-bfc6-4e25-af67-7aeb7dae64b9
@@ -888,6 +899,7 @@ router.get('/get-courses', courseController.getCourses);
  *                     - Invalid power skills provided
  *                     - Course name exist already
  *                     - Scenario not found
+ *                     - Course image is required
  *       403:
  *         description: Forbidden - Insufficient permissions
  *         content:
@@ -931,13 +943,13 @@ router.get('/get-courses', courseController.getCourses);
  *                     - Failed to create course
  *                     - Failed to add power skills to course
  */
-router.post('/create-course', courseController.createCourse);
+router.post('/create-course', multerUpload.single('courseImage'), courseController.createCourse);
 /**
  * @openapi
  * /course/update-course:
  *   post:
  *     summary: Update a course
- *     description: Updates an existing course's details (name, scenario, and/or power skills). Only admins who created the course can update it. Requires authentication via a valid access token. The course ID and optional fields to update are provided in the request body.
+ *     description: Updates an existing course's details (name, scenario, and/or power skills, image file). Only admins who created the course can update it. Requires authentication via a valid access token. The course ID and optional fields to update are provided in the request body.
  *     tags:
  *       - Course
  *     security:
@@ -945,7 +957,7 @@ router.post('/create-course', courseController.createCourse);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *        multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -960,6 +972,10 @@ router.post('/create-course', courseController.createCourse);
  *                 type: string
  *                 example: "PS102 Personal Effectiveness and Productivity"
  *                 description: The new name for the course (optional)
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: The image file for the course (e.g., PNG, JPG) (optional)
  *               scenario:
  *                 type: string
  *                 example: "Intermediate"
@@ -995,6 +1011,9 @@ router.post('/create-course', courseController.createCourse);
  *                         type: string
  *                         example: "PS102 Personal Effectiveness and Productivity"
  *                         description: The name of the course
+ *                       courseImage:
+ *                         type: string
+ *                         example: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1741394743259-GK5kZ7xXMAEltG9.png
  *                       userId:
  *                         type: string
  *                         format: uuid
@@ -1031,6 +1050,7 @@ router.post('/create-course', courseController.createCourse);
  *                 data:
  *                   - id: abfb6988-c506-47f2-9fec-000ce3b35694
  *                     name: "PS102 Personal Effectiveness and Productivity"
+ *                     courseImage: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1741394743259-GK5kZ7xXMAEltG9.png
  *                     userId: 0af8edf7-e4e6-4774-9dac-4ce104ace38c
  *                     scenarioName: "Intermediate"
  *                     scenarioId: 2c093d7a-bfc6-4e25-af67-7aeb7dae64b9
@@ -1103,7 +1123,7 @@ router.post('/create-course', courseController.createCourse);
  *                     - Failed to remove power skills from the course
  *                     - Failed to update power skills for the course
  */
-router.post('/update-course', courseController.updateCourse);
+router.post('/update-course', multerUpload.single('courseImage'), courseController.updateCourse);
 /**
  * @openapi
  * /course/delete-course:
@@ -1608,6 +1628,7 @@ router.get('/get-lessons', courseController.getCourseLessons);
  *             required:
  *               - courseId
  *               - title
+ *               - description
  *               - fileName
  *               - fileType
  *               - fileSize
@@ -1622,6 +1643,10 @@ router.get('/get-lessons', courseController.getCourseLessons);
  *                 type: string
  *                 example: "Introduction to Self-Leadership"
  *                 description: The title of the lesson (chapter)
+ *               description:
+ *                 type: string
+ *                 example: "Introduction to Self-Leadership is the beginning of leadership. One should learn how to lead before leading others"
+ *                 description: The description of the lesson (chapter)
  *               fileName:
  *                 type: string
  *                 example: "WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
@@ -1681,10 +1706,10 @@ router.get('/get-lessons', courseController.getCourseLessons);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: "CourseId, title, fileName, fileType, fileSize and videoLength are required"
+ *                   example: "CourseId, title, description, fileName, fileType, fileSize and videoLength are required"
  *                   enum:
  *                     - Please log in again
- *                     - CourseId, title, fileName, fileType, fileSize and videoLength are required
+ *                     - CourseId, title, description, fileName, fileType, fileSize and videoLength are required
  *                     - Course has already been deleted
  *       403:
  *         description: Forbidden - Insufficient permissions
@@ -1798,7 +1823,7 @@ router.post('/create-lesson', courseController.createLesson);
  * /course/update-lesson:
  *   post:
  *     summary: Update an existing lesson
- *     description: Updates a lesson's title and/or video. Only admins can update lessons. Requires authentication via a valid access token. If a new video is provided, a pre-signed URL is returned for uploading the new video file.
+ *     description: Updates a lesson's title, description and/or video. Only admins can update lessons. Requires authentication via a valid access token. If a new video is provided, a pre-signed URL is returned for uploading the new video file.
  *     tags:
  *       - Course
  *     security:
@@ -1820,6 +1845,10 @@ router.post('/create-lesson', courseController.createLesson);
  *               title:
  *                 type: string
  *                 example: "Updated Introduction to Self-Leadership"
+ *                 description: The new title of the lesson (optional)
+ *               description:
+ *                 type: string
+ *                 example: "Updated Introduction to Self-Leadership is the beginning of leadership. One should learn how to lead before leading others"
  *                 description: The new title of the lesson (optional)
  *               fileName:
  *                 type: string
