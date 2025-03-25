@@ -146,7 +146,8 @@ export class CourseController {
 		if (!name || !skills || !Array.isArray(skills) || skills.length === 0) {
 			throw new AppError('Course name and at least one power skill are required', 400);
 		}
-		const skillRecords = await powerSkillRepository.findSkillsByNames(skills);
+
+		const skillRecords = await powerSkillRepository.findSkillsByIds(skills);
 		if (skillRecords.length !== skills.length) {
 			throw new AppError('Invalid power skills provided', 400);
 		}
@@ -260,7 +261,7 @@ export class CourseController {
 		});
 
 		if (skills && Array.isArray(skills) && skills.length > 0) {
-			const skillRecords = await powerSkillRepository.findSkillsByNames(skills);
+			const skillRecords = await powerSkillRepository.findSkillsByIds(skills);
 			if (skillRecords.length !== skills.length) {
 				throw new AppError('Invalid power skills provided', 400);
 			}

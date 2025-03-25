@@ -30,8 +30,8 @@ class PowerSkillRepository {
 		return knexDb('sys_powerskill').where({ powerskill: skill, isDeleted: false }).first();
 	};
 
-	findSkillsByNames = async (skills: string[]): Promise<IPowerSkill[]> => {
-		return knexDb('sys_powerskill').whereIn('powerskill', skills).select('id', 'powerskill');
+	findSkillsByIds = async (skills: string[]): Promise<IPowerSkill[]> => {
+		return knexDb('sys_powerskill').whereIn('id', skills).select('id', 'powerskill');
 	};
 
 	findByIsDeleted = async (isDeleted: boolean): Promise<IPowerSkill[]> => {
