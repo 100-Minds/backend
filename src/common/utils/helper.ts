@@ -127,15 +127,10 @@ const parseTokenDuration = (duration: string): number => {
 
 const isMobile = (req: Request): 'mobile' | 'browser' => {
 	const customHeader = req.headers['100minds'];
-	const userAgentHeader = req.headers['user-agent'];
-
-	const customUserAgent = Array.isArray(customHeader) ? customHeader.join(' ') : customHeader || '';
-	const browserUserAgent = Array.isArray(userAgentHeader) ? userAgentHeader.join(' ') : userAgentHeader || '';
-
-	const userAgent = customUserAgent || browserUserAgent || '';
-	if (userAgent.includes('mobile') || /android|iphone|ipad|mobile/i.test(userAgent)) {
+	if (customHeader) {
 		return 'mobile';
 	}
+
 	return 'browser';
 };
 
@@ -148,15 +143,13 @@ const setCookie = (
 	maxAge: number
 ) => {
 	const clientType = isMobile(req);
-	console.log(clientType);
 	if (clientType === 'mobile') {
 		if (name === 'accessToken') res.locals.newAccessToken = value;
 		if (name === 'refreshToken') res.locals.newRefreshToken = value;
 	} else {
 		res.cookie(name, value, {
 			httpOnly: true,
-			// secure: ENVIRONMENT.APP.ENV === 'production',
-			secure: false,
+			secure: ENVIRONMENT.APP.ENV === 'production',
 			path: '/',
 			sameSite: ENVIRONMENT.APP.ENV === 'production' ? 'none' : 'lax',
 			partitioned: ENVIRONMENT.APP.ENV === 'production',
