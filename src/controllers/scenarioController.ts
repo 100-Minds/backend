@@ -16,7 +16,7 @@ export class ScenarioController {
 		if (!file) {
 			throw new AppError('Scenario image is required', 400);
 		}
-
+		
 		if (user.role === 'user') {
 			throw new AppError('Only an admin can create a scenario', 403);
 		}

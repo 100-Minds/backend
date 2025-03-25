@@ -27,7 +27,8 @@ export class UserController {
 		if (!user) {
 			throw new AppError('Please log in again', 401);
 		}
-		if (user.role !== 'admin') {
+
+		if (user.role === 'user') {
 			throw new AppError('Only admins can view all users', 403);
 		}
 

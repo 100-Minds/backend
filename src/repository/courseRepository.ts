@@ -66,7 +66,7 @@ class CourseRepository {
 		const result = await knexDb.table('course').where({ id }).select('*');
 		return result.length ? result[0] : null;
 	};
-	
+
 	getCourses = async (): Promise<ICourseWithModuleName[] | null> => {
 		return await knexDb
 			.table('course')

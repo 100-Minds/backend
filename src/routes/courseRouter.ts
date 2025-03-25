@@ -1994,7 +1994,7 @@ router.post('/create-lesson', courseController.createLesson);
 router.post('/update-lesson', courseController.updateLesson);
 /**
  * @openapi
- * /course/videos/upload-status:
+ * /course/video/upload-status:
  *   post:
  *     summary: Update video upload status
  *     description: Updates the upload status of a video (e.g., to COMPLETED or FAILED) after the video has been uploaded using a pre-signed URL. Only admins can update the status. Requires authentication via a valid access token. Sends an email notification to the user based on the status.

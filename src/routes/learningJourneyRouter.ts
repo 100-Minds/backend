@@ -239,6 +239,7 @@ router.post('/create', learningJourneyController.addLearningJourney);
  *                 data:
  *                   - moduleId: 65cf4f6d-01bf-4699-885f-191bb83d19d2
  *                     moduleName: "Leading Self"
+ *                     isRequired: false
  *                     courses:
  *                       - courseId: 9c816faa-7a82-4f5e-94ee-1869e77d33c1
  *                         courseName: "PS101 Self-Leadership"
@@ -254,6 +255,7 @@ router.post('/create', learningJourneyController.addLearningJourney);
  *                             chapterTitle: "Chapter 1"
  *                   - moduleId: 20104f7d-a689-4c27-864a-db899e19068a
  *                     moduleName: "Leading Others"
+ *                     isRequired: false
  *                     courses:
  *                       - courseId: abfb6988-c506-47f2-9fec-000ce3b35694
  *                         courseName: "PS102 Personal Effectiveness and Productivity"

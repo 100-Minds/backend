@@ -51,6 +51,7 @@ export class CourseController {
 		if (!moduleId) {
 			throw new AppError('Module ID is required', 400);
 		}
+		
 		const module = await courseRepository.getModule(moduleId as string);
 		if (!module) {
 			throw new AppError('Module not found', 404);
@@ -197,6 +198,9 @@ export class CourseController {
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
+		if (!courseId) {
+			throw new AppError('Course ID is required', 400);
+		}
 
 		const course = await courseRepository.getCourse(courseId as string);
 		if (!course) {
@@ -288,11 +292,9 @@ export class CourseController {
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
-
 		if (user.role === 'user') {
 			throw new AppError('Only an admin can delete a course', 403);
 		}
-
 		if (!courseId) {
 			throw new AppError('courseId ID is required', 400);
 		}
@@ -374,6 +376,9 @@ export class CourseController {
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
+		if (!chapterId || !courseId) {
+			throw new AppError('ChapterId and CourseId are required', 400);
+		}
 
 		const course = await courseRepository.getCourse(courseId as string);
 		if (!course) {
@@ -395,6 +400,9 @@ export class CourseController {
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
+		if (!courseId) {
+			throw new AppError('CourseId is required', 400);
+		}
 
 		const course = await courseRepository.getCourse(courseId as string);
 		if (!course) {
@@ -415,6 +423,9 @@ export class CourseController {
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
+		}
+		if (!chapterId) {
+			throw new AppError('ChapterId is required', 400);
 		}
 
 		const chapter = await courseRepository.getChapter(chapterId as string);
@@ -448,11 +459,9 @@ export class CourseController {
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
-
 		if (user.role === 'user') {
 			throw new AppError('Only an admin can update a lesson', 403);
 		}
-
 		if (!chapterId) {
 			throw new AppError('ChapterId is required', 400);
 		}
