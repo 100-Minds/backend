@@ -149,12 +149,13 @@ export class CourseController {
 		if (user.role === 'user') {
 			throw new AppError('Only an admin can create a course', 403);
 		}
-		if (!name || !skills || !Array.isArray(skills) || skills.length === 0) {
-			throw new AppError('Course name and at least one power skill are required', 400);
+		const parsedSkills = typeof skills === 'string' ? JSON.parse(skills) : skills;
+		if (!name || !scenario || !moduleId || !skills || !Array.isArray(parsedSkills) || parsedSkills.length === 0) {
+			throw new AppError('Course name, scenario, moduleId and at least one power skill are required', 400);
 		}
 
-		const skillRecords = await powerSkillRepository.findSkillsByIds(skills);
-		if (skillRecords.length !== skills.length) {
+		const skillRecords = await powerSkillRepository.findSkillsByIds(parsedSkills);
+		if (skillRecords.length !== parsedSkills.length) {
 			throw new AppError('Invalid power skills provided', 400);
 		}
 
