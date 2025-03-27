@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import {
 	AppError,
 	AppResponse,
+	deleteObjectFromR2,
 	generatePresignedUrl,
 	toJSON,
 	uploadPictureFile,
@@ -517,7 +518,6 @@ export class CourseController {
 		if (!chapter) {
 			throw new AppError('Chapter not found', 404);
 		}
-
 		if (chapter.isDeleted) {
 			throw new AppError('Chapter has already been deleted', 400);
 		}
@@ -535,6 +535,16 @@ export class CourseController {
 
 		let signedUrl: string | undefined, key: string | undefined;
 		if (fileName && fileType && fileSize && videoLength) {
+			const video = await courseRepository.getVideoByChapterId(chapter.id);
+			if (!video) {
+				throw new AppError('Video not found', 404);
+			}
+
+			const result = await deleteObjectFromR2(video.videoURL);
+			if (result === false) {
+				throw new AppError('Invalid file URL. Could not extract object key.');
+			}
+
 			({ signedUrl, key } = await generatePresignedUrl(fileName, fileType, fileSize));
 
 			const videoUpdates = {
@@ -550,6 +560,50 @@ export class CourseController {
 		}
 
 		return AppResponse(res, 200, signedUrl ? { signedUrl, key } : null, 'Lesson updated successfully.');
+	});
+
+	deleteLesson = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { chapterId } = req.body;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (user.role === 'user') {
+			throw new AppError('Only an admin can update an uploaded video', 403);
+		}
+		if (!chapterId) {
+			throw new AppError('Chapter Id is required', 400);
+		}
+
+		const chapter = await courseRepository.getChapter(chapterId);
+		if (!chapter) {
+			throw new AppError('Chapter not found', 404);
+		}
+		if (chapter.isDeleted) {
+			throw new AppError('Chapter has already been deleted', 400);
+		}
+
+		const video = await courseRepository.getVideoByChapterId(chapter.id);
+		if (!video) {
+			throw new AppError('Video not found', 404);
+		}
+
+		const result = await deleteObjectFromR2(video.videoURL);
+		if (result === false) {
+			throw new AppError('Invalid file URL. Could not extract object key.');
+		}
+
+		const hardDelete = await Promise.all([
+			courseRepository.hardDeleteChapter(chapter.id),
+			courseRepository.hardDeleteVideo(video.id),
+		]);
+
+		if (!hardDelete) {
+			throw new AppError('Failed to delete chapter and video', 500);
+		}
+
+		return AppResponse(res, 200, null, 'Lesson deleted successfully.');
 	});
 
 	updateVideoUploadedStatus = catchAsync(async (req: Request, res: Response) => {

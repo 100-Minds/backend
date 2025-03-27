@@ -1,7 +1,7 @@
 import { ENVIRONMENT } from '@/common/config';
 import type { IAwsUploadFile } from '@/common/interfaces';
 import AppError from './appError';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { isValidPhotoNameAwsUpload } from './helper';
 import sharp from 'sharp';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -24,7 +24,7 @@ export const r2 = new S3Client({
 	credentials: {
 		accessKeyId: ENVIRONMENT.R2.ACCESS_KEY_ID,
 		secretAccessKey: ENVIRONMENT.R2.SECRET_ACCESS_KEY,
-	}
+	},
 });
 
 /**
@@ -49,7 +49,7 @@ export const generatePresignedUrl = async (fileName: string, fileType: string, f
 		ContentType: fileType,
 	});
 
-	const signedUrl = await getSignedUrl(r2, command, { expiresIn: 600 }); 
+	const signedUrl = await getSignedUrl(r2, command, { expiresIn: 600 });
 
 	return { signedUrl, key };
 };
@@ -95,6 +95,31 @@ export const uploadPictureFile = async (payload: IAwsUploadFile): Promise<{ secu
 		return {
 			secureUrl: '',
 		};
+	}
+};
+
+const extractObjectKey = (fileUrl: string): string | null => {
+	const match = fileUrl.match(/\.r2\.dev\/(.+)/);
+	return match ? match[1] : null;
+};
+
+export const deleteObjectFromR2 = async (fileUrl: string) => {
+	try {
+		const objectKey = extractObjectKey(fileUrl);
+		if (!objectKey) {
+			return false;
+		}
+
+		const command = new DeleteObjectCommand({
+			Bucket: ENVIRONMENT.R2.BUCKET_NAME,
+			Key: objectKey,
+		});
+
+		await r2.send(command);
+		console.log(`Deleted: ${objectKey}`);
+	} catch (error) {
+		console.error('Error deleting object:', error);
+		throw error;
 	}
 };
 
