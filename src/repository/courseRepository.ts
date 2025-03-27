@@ -121,7 +121,7 @@ class CourseRepository {
 	getAllChapters = async (courseId: string): Promise<ICourseChapterWithVideoUrl[] | null> => {
 		return await knexDb
 			.table('course_chapters')
-			.select('course_chapters.*', 'course_videos.videoUrl as videoUrl')
+			.select('course_chapters.*', 'course_videos.videoURL as videoUrl')
 			.leftJoin('course_videos', 'course_videos.chapterId', 'course_chapters.id')
 			.where('course_chapters.courseId', courseId)
 			.andWhere('course_chapters.isDeleted', false)
