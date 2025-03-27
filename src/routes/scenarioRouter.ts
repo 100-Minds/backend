@@ -113,7 +113,7 @@ router.get('/', scenarioController.findOne);
  * /scenario/all:
  *   get:
  *     summary: Get all scenarios
- *     description: Retrieves a list of all scenarios in the system. Requires authentication via a valid access token and admin privileges.
+ *     description: Retrieves a list of all scenarios in the system. Requires authentication via a valid access token.
  *     tags:
  *       - Scenario
  *     security:
