@@ -8,6 +8,7 @@ import {
 	IChapterLesson,
 	IModule,
 	ICourseWithModuleName,
+	ICourseChapterWithVideoUrl,
 } from '@/common/interfaces';
 import { DateTime } from 'luxon';
 
@@ -113,8 +114,18 @@ class CourseRepository {
 		return result.length ? result[0] : null;
 	};
 
-	getAllChapters = async (courseId: string): Promise<ICourseChapter[]> => {
-		return knexDb.table('course_chapters').where({ courseId, isDeleted: false }).orderBy('chapterNumber', 'asc');
+	// getAllChapters = async (courseId: string): Promise<ICourseChapter[]> => {
+	// 	return knexDb.table('course_chapters').where({ courseId, isDeleted: false }).orderBy('chapterNumber', 'asc');
+	// };
+
+	getAllChapters = async (courseId: string): Promise<ICourseChapterWithVideoUrl[] | null> => {
+		return await knexDb
+			.table('course_chapters')
+			.select('course_chapters.*', 'course_videos.videoUrl as videoUrl')
+			.leftJoin('course_videos', 'course_videos.chapterId', 'course_chapters.id')
+			.where('course_chapters.courseId', courseId)
+			.andWhere('course_chapters.isDeleted', false)
+			.orderBy('course_chapters.chapterNumber', 'asc');
 	};
 
 	getCourseMaxChapter = async (courseId: string): Promise<MaxChapterResult | null> => {

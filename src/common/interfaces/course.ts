@@ -48,6 +48,10 @@ export interface ICourseWithModuleName extends ICourse {
 	moduleName: string | null;
 }
 
+export interface ICourseChapterWithVideoUrl extends ICourseChapter {
+	videoUrl: string;
+}
+
 export interface ILesson {
 	course: ICourse;
 	chapters: {
