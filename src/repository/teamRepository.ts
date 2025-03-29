@@ -17,6 +17,7 @@ class TeamRepository {
 			.table('teams')
 			.join('users', 'teams.ownerId', 'users.id')
 			.select('teams.*', 'users.firstName', 'users.lastName')
+			.where('teams.isDeleted', false)
 			.orderBy('teams.created_at', 'desc');
 	};
 
