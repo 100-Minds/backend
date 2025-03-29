@@ -90,6 +90,8 @@ class AuthController {
 			throw new AppError('Invalid credentials', 401);
 		}
 
+		console.log('user log', user)
+
 		if (user.isSuspended) {
 			throw new AppError('Your account is currently suspended', 401);
 		}
