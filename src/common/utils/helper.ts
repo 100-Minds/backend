@@ -149,8 +149,8 @@ const setCookie = (
 	} else {
 		res.cookie(name, value, {
 			httpOnly: true,
-			// secure: ENVIRONMENT.APP.ENV === 'production',
-			secure: false,
+			secure: ENVIRONMENT.APP.ENV === 'production',
+			//secure: false,
 			path: '/',
 			sameSite: ENVIRONMENT.APP.ENV === 'production' ? 'none' : 'lax',
 			partitioned: ENVIRONMENT.APP.ENV === 'production',
