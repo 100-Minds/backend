@@ -22,10 +22,11 @@ import {
 import { catchAsync } from '@/middlewares';
 import { ENVIRONMENT } from '@/common/config';
 import { DateTime } from 'luxon';
+import { Role } from '@/common/constants';
 
 class AuthController {
 	signUp = catchAsync(async (req: Request, res: Response) => {
-		const { email, password, firstName, lastName, username } = req.body;
+		const { email, password, firstName, lastName, username, role } = req.body;
 
 		if (!firstName || !lastName || !email || !username || !password) {
 			throw new AppError('Incomplete signup data', 400);
@@ -49,16 +50,17 @@ class AuthController {
 			lastName,
 			username,
 			ipAddress: req.ip,
+			role: role === 'admin' ? Role.Admin : Role.User,
 		});
 		if (!user) {
 			throw new AppError('Failed to create user', 500);
 		}
 
-		const accessToken = generateAccessToken(user.id);
-		const refreshToken = generateRefreshToken(user.id);
+		// const accessToken = generateAccessToken(user.id);
+		// const refreshToken = generateRefreshToken(user.id);
 
-		setCookie(req, res, 'accessToken', accessToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.ACCESS));
-		setCookie(req, res, 'refreshToken', refreshToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.REFRESH));
+		// setCookie(req, res, 'accessToken', accessToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.ACCESS));
+		// setCookie(req, res, 'refreshToken', refreshToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.REFRESH));
 
 		return AppResponse(res, 201, toJSON([user]), 'User created successfully');
 	});

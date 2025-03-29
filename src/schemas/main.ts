@@ -1,4 +1,4 @@
-import { QuizDifficulty } from '@/common/constants';
+import { QuizDifficulty, Role } from '@/common/constants';
 import { dateFromString } from '@/common/utils';
 import { z } from 'zod';
 
@@ -55,6 +55,7 @@ export const mainSchema = z.object({
 	moduleId: z.string().min(7),
 	isDone: z.boolean(),
 	timeSpent: z.string().min(1),
+	role: z.enum([Role.Admin, Role.User, Role.SuperUser]),
 	rolePlayId: z.string().min(7),
 	score: z.number().positive(),
 	quizId: z.string().min(7),
