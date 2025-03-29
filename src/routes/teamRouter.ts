@@ -113,6 +113,114 @@ router.use(protect);
 router.get('/', teamController.getTeam);
 /**
  * @openapi
+ * /team/all:
+ *   get:
+ *     summary: Get all teams
+ *     description: Retrieves a list of all teams. Requires authentication via a valid access token. Returns an array of team objects if successful.
+ *     tags:
+ *       - Teams
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Teams successfully fetched
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                         example: 5c9eb36c-e3b4-4056-a6b8-0f6c353d6fd9
+ *                       name:
+ *                         type: string
+ *                         example: Team D
+ *                       isDeleted:
+ *                         type: boolean
+ *                         example: false
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                         example: 2025-03-08T01:19:10.690Z
+ *                       firstName:
+ *                         type: string
+ *                         example: David
+ *                       lastName:
+ *                         type: string
+ *                         example: Okonkwo
+ *                 message:
+ *                   type: string
+ *                   example: Teams successfully fetched
+ *               example:
+ *                 status: success
+ *                 data:
+ *                   - id: 5c9eb36c-e3b4-4056-a6b8-0f6c353d6fd9
+ *                     name: Team D
+ *                     isDeleted: false
+ *                     created_at: 2025-03-08T01:19:10.690Z
+ *                     firstName: David
+ *                     lastName: Okonkwo
+ *                   - id: 55e4bfcf-758c-4442-b6d5-3c0e4c16e56d
+ *                     name: Team C
+ *                     isDeleted: false
+ *                     created_at: 2025-03-08T01:19:06.426Z
+ *                     firstName: David
+ *                     lastName: Okonkwo
+ *                   - id: 0beb9a74-3481-4f3e-9407-0b98fd9caf2c
+ *                     name: Team B
+ *                     isDeleted: false
+ *                     created_at: 2025-03-08T01:19:00.251Z
+ *                     firstName: David
+ *                     lastName: Okonkwo
+ *                   - id: 113c65f1-d7cb-4fc2-817b-d0d5bc7ff8ee
+ *                     name: Team A
+ *                     isDeleted: false
+ *                     created_at: 2025-03-08T01:18:34.291Z
+ *                     firstName: David
+ *                     lastName: Okonkwo
+ *                 message: Teams successfully fetched
+ *       400:
+ *         description: Bad Request - User not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Please log in again
+ *                   enum:
+ *                     - Please log in again
+ *       404:
+ *         description: Not Found - No teams found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Team not found
+ */
+router.get('/all', teamController.getAllTeams);
+
+/**
+ * @openapi
  * /team/user-teams:
  *   get:
  *     summary: Get teams owned by the admin user
@@ -420,7 +528,7 @@ router.post('/create-team', teamController.createTeam);
  *                   type: string
  *                   example: Team not found
  */
-router.post('/delete-team', teamController.updateTeam);
+router.post('/update-team', teamController.updateTeam);
 /**
  * @openapi
  * /team/delete-team:

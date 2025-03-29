@@ -1,5 +1,5 @@
 import { knexDb } from '@/common/config';
-import { ITeam, ITeamMember, ITeamInvite, ITeamMemberWithUser } from '@/common/interfaces';
+import { ITeam, ITeamMember, ITeamInvite, ITeamMemberWithUser, ITeamWithOwner } from '@/common/interfaces';
 import { DateTime } from 'luxon';
 
 class TeamRepository {
@@ -10,6 +10,14 @@ class TeamRepository {
 	getTeam = async (teamId: string): Promise<ITeam | null> => {
 		const result = await knexDb.table('teams').where({ id: teamId }).select('*');
 		return result.length ? result[0] : null;
+	};
+
+	getAllTeams = async (): Promise<ITeamWithOwner[]> => {
+		return await knexDb
+			.table('teams')
+			.join('users', 'teams.ownerId', 'users.id')
+			.select('teams.*', 'users.firstName', 'users.lastName')
+			.orderBy('teams.created_at', 'desc');
 	};
 
 	getTeamByName = async (ownerId: string, name: string): Promise<ITeam | null> => {

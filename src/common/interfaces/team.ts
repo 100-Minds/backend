@@ -9,6 +9,11 @@ export interface ITeam {
 	updated_at?: Date;
 }
 
+export interface ITeamWithOwner extends ITeam {
+	firstName: string;
+	lastName: string;
+}
+
 export interface ITeamMember {
 	id: string;
 	teamId: string;

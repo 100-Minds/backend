@@ -90,6 +90,21 @@ class TeamController {
 		return AppResponse(res, 200, toJSON([team]), 'User team successfully fetched');
 	});
 
+	getAllTeams = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+
+		const team = await teamRepository.getAllTeams();
+		if (!team) {
+			throw new AppError('Team not found', 404);
+		}
+
+		return AppResponse(res, 200, toJSON(team), 'Teams successfully fetched');
+	});
+
 	updateTeam = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { name, teamId } = req.body;
