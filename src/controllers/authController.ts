@@ -90,8 +90,6 @@ class AuthController {
 			throw new AppError('Invalid credentials', 401);
 		}
 
-		console.log('user log', user)
-
 		if (user.isSuspended) {
 			throw new AppError('Your account is currently suspended', 401);
 		}
@@ -162,6 +160,8 @@ class AuthController {
 			await userRepository.update(user.id, { loginRetries: user.loginRetries + 1 });
 			throw new AppError('Invalid credentials', 401);
 		}
+
+		console.log('user log', user);
 
 		if (user.isSuspended) {
 			throw new AppError('Your account is currently suspended', 401);
