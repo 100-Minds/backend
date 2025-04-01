@@ -258,9 +258,6 @@ export class CourseController {
 		if (!course) {
 			throw new AppError('Course not found', 404);
 		}
-		if (course.userId !== user.id) {
-			throw new AppError('You are not authorized to update this course', 403);
-		}
 		if (course.isDeleted) {
 			throw new AppError('Course has already been deleted', 400);
 		}
