@@ -19,7 +19,7 @@ class PowerSkillRepository {
 	};
 
 	findAll = async (): Promise<IPowerSkill[]> => {
-		return knexDb('sys_powerskill').where({ isDeleted: false }).orderBy('created_at', 'asc');
+		return knexDb('sys_powerskill').where({ isDeleted: false }).orderBy('created_at', 'desc');
 	};
 
 	findOne = async (id: string): Promise<IPowerSkill | null> => {
