@@ -61,6 +61,11 @@ export const uploadPictureFile = async (payload: IAwsUploadFile): Promise<{ secu
 		throw new AppError('File name, buffer and mimetype are required', 400);
 	}
 
+	const MAX_FILE_SIZE = 8 * 1024 * 1024;
+	if (buffer.length > MAX_FILE_SIZE) {
+		throw new AppError('Photo size exceeds 8MB limit', 400);
+	}
+
 	if (fileName && !isValidPhotoNameAwsUpload(fileName)) {
 		throw new AppError('Invalid file name', 400);
 	}
@@ -95,6 +100,47 @@ export const uploadPictureFile = async (payload: IAwsUploadFile): Promise<{ secu
 		return {
 			secureUrl: '',
 		};
+	}
+};
+
+export const uploadDocumentFile = async (payload: IAwsUploadFile): Promise<{ secureUrl: string }> => {
+	const { fileName, buffer, mimetype } = payload;
+
+	if (!fileName || !buffer || !mimetype) {
+		throw new AppError('File name, buffer, and mimetype are required', 400);
+	}
+
+	const MAX_FILE_SIZE = 50 * 1024 * 1024;
+	if (buffer.length > MAX_FILE_SIZE) {
+		throw new AppError('File size exceeds 50MB limit', 400);
+	}
+
+	const validDocumentTypes = [
+		'application/pdf',
+		'application/msword',
+		'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	];
+	if (!validDocumentTypes.includes(mimetype)) {
+		throw new AppError('Invalid document format. Supported formats: pdf, doc, docx', 400);
+	}
+
+	const uploadParams = {
+		Bucket: ENVIRONMENT.R2.BUCKET_NAME,
+		Key: fileName,
+		Body: buffer,
+		ContentType: mimetype,
+	};
+
+	try {
+		const command = new PutObjectCommand(uploadParams);
+		await r2.send(command);
+
+		const secureUrl = `${ENVIRONMENT.R2.PUBLIC_URL}/${fileName}`;
+
+		return { secureUrl };
+	} catch (error) {
+		console.log(error);
+		throw new AppError('Error uploading document to R2', 500);
 	}
 };
 

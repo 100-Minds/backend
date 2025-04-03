@@ -5,6 +5,7 @@ import {
 	deleteObjectFromR2,
 	generatePresignedUrl,
 	toJSON,
+	uploadDocumentFile,
 	uploadPictureFile,
 	videoUploadFailedEmail,
 	videoUploadSuccessfulEmail,
@@ -13,7 +14,7 @@ import { catchAsync } from '@/middlewares';
 import { courseRepository, powerSkillRepository, scenarioRepository } from '@/repository';
 import { VideoUploadStatus } from '@/common/constants';
 import { ENVIRONMENT } from '@/common/config';
-import { ICourse, ICourseChapter, IScenario } from '@/common/interfaces';
+import { ICourseChapter, IScenario } from '@/common/interfaces';
 
 export class CourseController {
 	createModule = catchAsync(async (req: Request, res: Response) => {
@@ -139,17 +140,18 @@ export class CourseController {
 	createCourse = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { name, scenario, moduleId, skills } = req.body;
-		const { file } = req;
+		const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
-		if (!file) {
+		if (!files || !files.courseImage) {
 			throw new AppError('Course image is required', 400);
 		}
 		if (user.role === 'user') {
 			throw new AppError('Only an admin can create a course', 403);
 		}
+
 		const parsedSkills = typeof skills === 'string' ? JSON.parse(skills) : skills;
 		if (!name || !scenario || !moduleId || !skills || !Array.isArray(parsedSkills) || parsedSkills.length === 0) {
 			throw new AppError('Course name, scenario, moduleId and at least one power skill are required', 400);
@@ -178,17 +180,30 @@ export class CourseController {
 			}
 		}
 
+		const imageFile = files.courseImage[0];
 		const { secureUrl: courseImage } = await uploadPictureFile({
-			fileName: `course-image/${Date.now()}-${file.originalname}`,
-			buffer: file.buffer,
-			mimetype: file.mimetype,
+			fileName: `course-image/${Date.now()}-${imageFile.originalname}`,
+			buffer: imageFile.buffer,
+			mimetype: imageFile.mimetype,
 		});
+
+		let courseResources: string | null = null;
+		if (files.courseResources && files.courseResources.length > 0) {
+			const documentFile = files.courseResources[0];
+			const { secureUrl } = await uploadDocumentFile({
+				fileName: `course-resources/${Date.now()}-${documentFile.originalname}`,
+				buffer: documentFile.buffer,
+				mimetype: documentFile.mimetype,
+			});
+			courseResources = secureUrl;
+		}
 
 		const [course] = await courseRepository.create({
 			name,
 			courseImage,
 			userId: user.id,
 			moduleId,
+			courseResources,
 			scenarioId: scenarioRecord ? scenarioRecord.id : null,
 			scenarioName: scenarioRecord ? scenarioRecord.scenario : null,
 		});
@@ -242,7 +257,7 @@ export class CourseController {
 	updateCourse = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { name, courseId, scenario, skills } = req.body;
-		const { file } = req;
+		const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -270,36 +285,35 @@ export class CourseController {
 			}
 		}
 
-		let updatedCourse: ICourse[] | null;
-		if (file) {
-			const { secureUrl: courseImage } = await uploadPictureFile({
-				fileName: `course-image/${Date.now()}-${file.originalname}`,
-				buffer: file.buffer,
-				mimetype: file.mimetype,
+		let courseImageUrl = course.courseImage;
+		if (files?.courseImage?.[0]) {
+			const { secureUrl } = await uploadPictureFile({
+				fileName: `course-image/${Date.now()}-${files.courseImage[0].originalname}`,
+				buffer: files.courseImage[0].buffer,
+				mimetype: files.courseImage[0].mimetype,
 			});
-
-			updatedCourse = await courseRepository.update(courseId, {
-				...(name ? { name } : {}),
-				...(scenarioRecord ? { scenarioId: scenarioRecord.id } : null),
-				...(scenarioRecord ? { scenarioName: scenarioRecord.scenario } : null),
-				courseImage,
-			});
-		} else {
-			updatedCourse = await courseRepository.update(courseId, {
-				...(name ? { name } : {}),
-				...(scenarioRecord ? { scenarioId: scenarioRecord.id } : null),
-				...(scenarioRecord ? { scenarioName: scenarioRecord.scenario } : null),
-			});
+			courseImageUrl = secureUrl;
 		}
+
+		let courseResources = course.courseResources || null;
+		if (files?.courseResources?.[0]) {
+			const { secureUrl } = await uploadDocumentFile({
+				fileName: `course-documents/${Date.now()}-${files.courseResources[0].originalname}`,
+				buffer: files.courseResources[0].buffer,
+				mimetype: files.courseResources[0].mimetype,
+			});
+			courseResources = secureUrl;
+		}
+
+		const updatedCourse = await courseRepository.update(courseId, {
+			...(name ? { name } : {}),
+			...(scenarioRecord ? { scenarioId: scenarioRecord.id, scenarioName: scenarioRecord.scenario } : {}),
+			...(courseImageUrl ? { courseImage: courseImageUrl } : {}),
+			...(courseResources ? { courseResources: courseResources } : {}),
+		});
 		if (!updatedCourse) {
 			throw new AppError('Failed to update course', 500);
 		}
-
-		// const updatedCourse = await courseRepository.update(courseId, {
-		// 	...(name ? { name } : {}),
-		// 	...(scenarioRecord ? { scenarioId: scenarioRecord.id } : null),
-		// 	...(scenarioRecord ? { scenarioName: scenarioRecord.scenario } : null),
-		// });
 
 		if (skills && Array.isArray(skills) && skills.length > 0) {
 			const skillRecords = await powerSkillRepository.findSkillsByIds(skills);
@@ -357,13 +371,14 @@ export class CourseController {
 	createLesson = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { title, description, courseId, fileName, fileType, fileSize, videoLength } = req.body;
+		const { file } = req;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
 
 		if (user.role === 'user') {
-			throw new AppError('Only an admin can create a chapter', 403);
+			throw new AppError('Only an admin can create a lesson', 403);
 		}
 
 		if (!courseId || !title || !description || !fileName || !fileType || !fileSize || !videoLength) {
@@ -385,6 +400,16 @@ export class CourseController {
 			throw new AppError('Course has already been deleted', 400);
 		}
 
+		let chapterResources: string | null = null;
+		if (file) {
+			const { secureUrl } = await uploadDocumentFile({
+				fileName: `chapter-resources/${Date.now()}-${file.originalname}`,
+				buffer: file.buffer,
+				mimetype: file.mimetype,
+			});
+			chapterResources = secureUrl;
+		}
+
 		const maxChapterResult = await courseRepository.getCourseMaxChapter(courseId);
 		const maxNumber = maxChapterResult?.maxNumber ?? 0;
 
@@ -393,6 +418,7 @@ export class CourseController {
 			description,
 			courseId,
 			chapterNumber: maxNumber + 1,
+			chapterResources,
 		});
 		if (!chapter) {
 			throw new AppError('Failed to create chapter', 500);
@@ -500,6 +526,7 @@ export class CourseController {
 	updateLesson = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { title, description, chapterId, fileName, fileType, fileSize, videoLength } = req.body;
+		const { file } = req;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -522,6 +549,22 @@ export class CourseController {
 		const updateFields: Partial<ICourseChapter> = {};
 		if (title) updateFields.title = title;
 		if (description) updateFields.description = description;
+
+		if (file) {
+			if (chapter.chapterResources) {
+				const deleteResult = await deleteObjectFromR2(chapter.chapterResources);
+				if (deleteResult === false) {
+					throw new AppError('Failed to delete the existing document.');
+				}
+			}
+
+			const { secureUrl } = await uploadDocumentFile({
+				fileName: `chapter-resources/${Date.now()}-${file.originalname}`,
+				buffer: file.buffer,
+				mimetype: file.mimetype,
+			});
+			updateFields.chapterResources = secureUrl;
+		}
 
 		if (Object.keys(updateFields).length > 0) {
 			const updatedChapter = await courseRepository.updateChapter(chapterId, updateFields);
@@ -653,100 +696,3 @@ export class CourseController {
 }
 
 export const courseController = new CourseController();
-
-//frontend code
-// function getVideoMetadata(file) {
-// 	return new Promise((resolve, reject) => {
-// 		const video = document.createElement('video');
-// 		video.preload = 'metadata';
-
-// 		video.onloadedmetadata = () => {
-// 			URL.revokeObjectURL(video.src);
-// 			resolve({
-// 				duration: Math.round(video.duration), // in seconds
-// 				size: file.size, // in bytes
-// 				type: file.type, // MIME type
-// 				name: file.name, // Original file name
-// 			});
-// 		};
-
-// 		video.onerror = () => {
-// 			reject(new Error('Error loading video file'));
-// 		};
-
-// 		video.src = URL.createObjectURL(file);
-// 	});
-// }
-
-// // Usage Example
-// const fileInput = document.getElementById('videoInput');
-// fileInput.addEventListener('change', async (event) => {
-// 	const file = event.target.files[0];
-// 	if (!file) return;
-
-// 	try {
-// 		const metadata = await getVideoMetadata(file);
-// 		console.log('Video Metadata:', metadata);
-
-// 		// Send metadata to the backend
-// 		const response = await fetch('/api/lessons', {
-// 			method: 'POST',
-// 			headers: { 'Content-Type': 'application/json' },
-// 			body: JSON.stringify({
-// 				courseId: 'your-course-id',
-// 				title: 'Lesson Title',
-// 				fileName: metadata.name,
-// 				fileType: metadata.type,
-// 				fileSize: metadata.size,
-// 				videoLength: metadata.duration,
-// 			}),
-// 		});
-// 		const data = await response.json();
-// 		console.log('Backend Response:', data);
-// 	} catch (error) {
-// 		console.error('Error getting video metadata:', error);
-// 	}
-// });
-
-// async function getUploadUrl(file) {
-// 	// Extract metadata
-// 	const fileName = file.name;
-// 	const fileType = file.type;
-// 	const fileSize = file.size;
-// 	const duration = await getVideoDuration(file); // Function to get video duration
-
-// 	// Request pre-signed URL from backend
-// 	const response = await fetch('/api/lessons/generate-upload-url', {
-// 		method: 'POST',
-// 		headers: { 'Content-Type': 'application/json' },
-// 		body: JSON.stringify({ courseId, chapterId, fileName, fileType, fileSize, duration }),
-// 	});
-
-// 	const data = await response.json();
-// 	return data.uploadUrl;
-// }
-
-// async function uploadVideoToR2(file, uploadUrl, key) {
-// 	try {
-// 		const response = await fetch(uploadUrl, {
-// 			method: 'PUT',
-// 			body: file,
-// 			headers: {
-// 				'Content-Type': file.type,
-// 			},
-// 		});
-
-// 		if (!response.ok) throw new Error('Upload failed');
-
-// 		// Notify backend of successful upload
-// 		await fetch('/api/lessons/video-uploaded', {
-// 			method: 'POST',
-// 			headers: { 'Content-Type': 'application/json' },
-// 			body: JSON.stringify({ key }),
-// 		});
-
-// 		console.log('Upload successful, backend notified');
-// 	} catch (error) {
-// 		console.error('Error uploading video:', error);
-// 	}
-// }

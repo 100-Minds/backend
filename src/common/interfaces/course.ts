@@ -13,6 +13,7 @@ export interface ICourse {
 	id: string;
 	name: string;
 	courseImage: string;
+	courseResources: string | null;
 	userId: string;
 	moduleId: string;
 	scenarioName: string | null;
@@ -28,6 +29,7 @@ export interface ICourseChapter {
 	description: string;
 	courseId: string;
 	chapterNumber: number;
+	chapterResources: string | null;
 	isDeleted: boolean;
 	created_at?: Date;
 	updated_at?: Date;
@@ -58,6 +60,7 @@ export interface ILesson {
 		id: string;
 		title: string;
 		chapterNumber: number;
+		chapterResources: string;
 		videos: ICourseVideo[];
 		created_at?: Date;
 		updated_at?: Date;
@@ -65,7 +68,7 @@ export interface ILesson {
 }
 
 export interface IChapterLesson {
-	course: Pick<ICourse, 'id' | 'name'>;
+	course: Pick<ICourse, 'id' | 'name' | 'courseResources'>;
 	chapter: ICourseChapter;
 	video: ICourseVideo[];
 }

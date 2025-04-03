@@ -172,6 +172,7 @@ class TeamController {
 
 		return AppResponse(res, 200, null, 'Team deleted successfully');
 	});
+	
 	createInvite = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { teamId, email } = req.body;

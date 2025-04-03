@@ -6,6 +6,7 @@ export async function up(knex: Knex): Promise<void> {
         table.integer('chapterNumber').notNullable().defaultTo(1);
         table.string('title').notNullable();
         table.string('description').notNullable();
+        table.string('chapterResources').nullable();
         table.boolean('isDeleted').defaultTo(false);
         table.uuid('courseId').references('id').inTable('course').onDelete('CASCADE').notNullable();
         table.timestamps(true, true);

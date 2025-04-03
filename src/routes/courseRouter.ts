@@ -767,7 +767,7 @@ router.get('/get-courses', courseController.getCourses);
  * /course/create-course:
  *   post:
  *     summary: Create a new course
- *     description: Creates a new course with associated module, scenario, and power skills. Only admins can create courses. Requires authentication via a valid access token. The course details are provided in the request body and the request includes a scenario name and an image file.
+ *     description: Creates a new course with associated module, scenario, power skills, and resources. Only admins can create courses. Requires authentication via a valid access token. The course details are provided in the request body and the request includes a scenario name, an image file, and optionally a resource file.
  *     tags:
  *       - Course
  *     security:
@@ -775,20 +775,20 @@ router.get('/get-courses', courseController.getCourses);
  *     requestBody:
  *       required: true
  *       content:
- *          multipart/form-data:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
  *               - name
  *               - moduleId
  *               - skills
- *               - file
+ *               - courseImage
  *             properties:
  *               name:
  *                 type: string
  *                 example: "PS102 Personal Effectiveness and Productivity"
  *                 description: The name of the course
- *               file:
+ *               courseImage:
  *                 type: string
  *                 format: binary
  *                 description: The image file for the course (e.g., PNG, JPG)
@@ -802,11 +802,15 @@ router.get('/get-courses', courseController.getCourses);
  *                 items:
  *                   type: string
  *                 example: ["Self Awareness", "Adaptability", "Critical Thinking"]
- *                 description: An array of power skill names to associate with the course
+ *                 description: An array of power skill names or IDs to associate with the course
  *               scenario:
  *                 type: string
  *                 example: "Intermediate"
  *                 description: The name of the scenario (optional)
+ *               courseResources:
+ *                 type: string
+ *                 format: binary
+ *                 description: Optional resource file for the course (e.g., PDF, DOC)
  *     responses:
  *       201:
  *         description: Course created successfully
@@ -826,15 +830,15 @@ router.get('/get-courses', courseController.getCourses);
  *                       id:
  *                         type: string
  *                         format: uuid
- *                         example: abfb6988-c506-47f2-9fec-000ce3b35694
+ *                         example: f4c46959-ac12-4344-a9d2-b59c7e0e1bef
  *                         description: The ID of the created course
  *                       name:
  *                         type: string
- *                         example: "PS102 Personal Effectiveness and Productivity"
+ *                         example: "DOCUMENT without coursee"
  *                         description: The name of the course
  *                       courseImage:
  *                         type: string
- *                         example: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1741394743259-GK5kZ7xXMAEltG9.png
+ *                         example: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1743644193011-image 13.png
  *                         description: Secure URL of the uploaded course image
  *                       userId:
  *                         type: string
@@ -862,23 +866,29 @@ router.get('/get-courses', courseController.getCourses);
  *                       created_at:
  *                         type: string
  *                         format: date-time
- *                         example: 2025-03-17T18:54:08.195Z
+ *                         example: 2025-04-03T01:36:35.025Z
  *                         description: The creation date of the course
+ *                       courseResources:
+ *                         type: string
+ *                         nullable: true
+ *                         example: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-resources/1743644194542-David Okonkwo Resume .pdf
+ *                         description: Secure URL of the uploaded course resources (null if not provided)
  *                 message:
  *                   type: string
  *                   example: Course created successfully
  *               example:
  *                 status: success
  *                 data:
- *                   - id: abfb6988-c506-47f2-9fec-000ce3b35694
- *                     name: "PS102 Personal Effectiveness and Productivity"
- *                     courseImage: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1741394743259-GK5kZ7xXMAEltG9.png
+ *                   - id: f4c46959-ac12-4344-a9d2-b59c7e0e1bef
+ *                     name: "DOCUMENT without coursee"
+ *                     courseImage: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1743644193011-image 13.png
  *                     userId: 0af8edf7-e4e6-4774-9dac-4ce104ace38c
  *                     scenarioName: "Intermediate"
  *                     scenarioId: 2c093d7a-bfc6-4e25-af67-7aeb7dae64b9
  *                     moduleId: 20104f7d-a689-4c27-864a-db899e19068a
  *                     isDeleted: false
- *                     created_at: 2025-03-17T18:54:08.195Z
+ *                     created_at: 2025-04-03T01:36:35.025Z
+ *                     courseResources: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-resources/1743644194542-David Okonkwo Resume .pdf
  *                 message: Course created successfully
  *       400:
  *         description: Bad Request - Validation errors
@@ -892,10 +902,10 @@ router.get('/get-courses', courseController.getCourses);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: Course name and at least one power skill are required
+ *                   example: Course name, scenario, moduleId and at least one power skill are required
  *                   enum:
  *                     - Please log in again
- *                     - Course name and at least one power skill are required
+ *                     - Course name, scenario, moduleId and at least one power skill are required
  *                     - Invalid power skills provided
  *                     - Course name exist already
  *                     - Scenario not found
@@ -943,13 +953,20 @@ router.get('/get-courses', courseController.getCourses);
  *                     - Failed to create course
  *                     - Failed to add power skills to course
  */
-router.post('/create-course', multerUpload.single('courseImage'), courseController.createCourse);
+router.post(
+	'/create-course',
+	multerUpload.fields([
+		{ name: 'courseImage', maxCount: 1 },
+		{ name: 'courseResources', maxCount: 1 },
+	]),
+	courseController.createCourse
+);
 /**
  * @openapi
  * /course/update-course:
  *   post:
  *     summary: Update a course
- *     description: Updates an existing course's details (name, scenario, and/or power skills, image file). Only admins who created the course can update it. Requires authentication via a valid access token. The course ID and optional fields to update are provided in the request body.
+ *     description: Updates an existing course's details (name, scenario, power skills, image file, and/or resources). Only admins who created the course can update it. Requires authentication via a valid access token. The course ID and optional fields to update are provided in the request body.
  *     tags:
  *       - Course
  *     security:
@@ -957,7 +974,7 @@ router.post('/create-course', multerUpload.single('courseImage'), courseControll
  *     requestBody:
  *       required: true
  *       content:
- *        multipart/form-data:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -966,16 +983,16 @@ router.post('/create-course', multerUpload.single('courseImage'), courseControll
  *               courseId:
  *                 type: string
  *                 format: uuid
- *                 example: abfb6988-c506-47f2-9fec-000ce3b35694
+ *                 example: f4c46959-ac12-4344-a9d2-b59c7e0e1bef
  *                 description: The ID of the course to update
  *               name:
  *                 type: string
- *                 example: "PS102 Personal Effectiveness and Productivity"
+ *                 example: "DOCUMENT without coursee"
  *                 description: The new name for the course (optional)
- *               file:
+ *               courseImage:
  *                 type: string
  *                 format: binary
- *                 description: The image file for the course (e.g., PNG, JPG) (optional)
+ *                 description: The new image file for the course (e.g., PNG, JPG) (optional)
  *               scenario:
  *                 type: string
  *                 example: "Intermediate"
@@ -985,7 +1002,11 @@ router.post('/create-course', multerUpload.single('courseImage'), courseControll
  *                 items:
  *                   type: string
  *                 example: ["Self Awareness", "Adaptability", "Critical Thinking"]
- *                 description: An array of new power skill names to associate with the course (optional)
+ *                 description: An array of new power skill names or IDs to associate with the course (optional)
+ *               courseResources:
+ *                 type: string
+ *                 format: binary
+ *                 description: Optional resource file for the course (e.g., PDF, DOC) (optional)
  *     responses:
  *       200:
  *         description: Course updated successfully
@@ -1005,15 +1026,16 @@ router.post('/create-course', multerUpload.single('courseImage'), courseControll
  *                       id:
  *                         type: string
  *                         format: uuid
- *                         example: abfb6988-c506-47f2-9fec-000ce3b35694
+ *                         example: f4c46959-ac12-4344-a9d2-b59c7e0e1bef
  *                         description: The ID of the updated course
  *                       name:
  *                         type: string
- *                         example: "PS102 Personal Effectiveness and Productivity"
+ *                         example: "DOCUMENT without coursee"
  *                         description: The name of the course
  *                       courseImage:
  *                         type: string
- *                         example: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1741394743259-GK5kZ7xXMAEltG9.png
+ *                         example: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1743644193011-image 13.png
+ *                         description: Secure URL of the uploaded course image
  *                       userId:
  *                         type: string
  *                         format: uuid
@@ -1040,23 +1062,29 @@ router.post('/create-course', multerUpload.single('courseImage'), courseControll
  *                       created_at:
  *                         type: string
  *                         format: date-time
- *                         example: 2025-03-17T18:54:08.195Z
+ *                         example: 2025-04-03T01:36:35.025Z
  *                         description: The creation date of the course
+ *                       courseResources:
+ *                         type: string
+ *                         nullable: true
+ *                         example: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-documents/1743644797667-Demo_credit.docx
+ *                         description: Secure URL of the uploaded course resources (null if not provided)
  *                 message:
  *                   type: string
  *                   example: Course updated successfully
  *               example:
  *                 status: success
  *                 data:
- *                   - id: abfb6988-c506-47f2-9fec-000ce3b35694
- *                     name: "PS102 Personal Effectiveness and Productivity"
- *                     courseImage: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1741394743259-GK5kZ7xXMAEltG9.png
+ *                   - id: f4c46959-ac12-4344-a9d2-b59c7e0e1bef
+ *                     name: "DOCUMENT without coursee"
+ *                     courseImage: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1743644193011-image 13.png
  *                     userId: 0af8edf7-e4e6-4774-9dac-4ce104ace38c
  *                     scenarioName: "Intermediate"
  *                     scenarioId: 2c093d7a-bfc6-4e25-af67-7aeb7dae64b9
  *                     moduleId: 20104f7d-a689-4c27-864a-db899e19068a
  *                     isDeleted: false
- *                     created_at: 2025-03-17T18:54:08.195Z
+ *                     created_at: 2025-04-03T01:36:35.025Z
+ *                     courseResources: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-documents/1743644797667-Demo_credit.docx
  *                 message: Course updated successfully
  *       400:
  *         description: Bad Request - Validation errors
@@ -1107,7 +1135,7 @@ router.post('/create-course', multerUpload.single('courseImage'), courseControll
  *                   type: string
  *                   example: Course not found
  *       500:
- *         description: Internal Server Error - Failed to update skills
+ *         description: Internal Server Error - Failed to update course or skills
  *         content:
  *           application/json:
  *             schema:
@@ -1122,8 +1150,16 @@ router.post('/create-course', multerUpload.single('courseImage'), courseControll
  *                   enum:
  *                     - Failed to remove power skills from the course
  *                     - Failed to update power skills for the course
+ *                     - Failed to update course
  */
-router.post('/update-course', multerUpload.single('courseImage'), courseController.updateCourse);
+router.post(
+	'/update-course',
+	multerUpload.fields([
+		{ name: 'courseImage', maxCount: 1 },
+		{ name: 'courseResources', maxCount: 1 },
+	]),
+	courseController.updateCourse
+);
 /**
  * @openapi
  * /course/delete-course:
@@ -1237,7 +1273,7 @@ router.post('/delete-course', courseController.deleteCourse);
  *         schema:
  *           type: string
  *           format: uuid
- *         example: abfb6988-c506-47f2-9fec-000ce3b35694
+ *         example: 070200b9-bd6b-4bde-8a45-99a247ed6f98
  *         description: The ID of the course to retrieve the lesson from
  *       - in: query
  *         name: chapterId
@@ -1245,7 +1281,7 @@ router.post('/delete-course', courseController.deleteCourse);
  *         schema:
  *           type: string
  *           format: uuid
- *         example: d23fd6d4-6416-4474-b056-748d162f34fa
+ *         example: 0088909d-5a6a-4931-acd7-6af3084b7ade
  *         description: The ID of the specific chapter to retrieve
  *     responses:
  *       200:
@@ -1269,32 +1305,46 @@ router.post('/delete-course', courseController.deleteCourse);
  *                           id:
  *                             type: string
  *                             format: uuid
- *                             example: abfb6988-c506-47f2-9fec-000ce3b35694
+ *                             example: 070200b9-bd6b-4bde-8a45-99a247ed6f98
  *                             description: The ID of the course
  *                           name:
  *                             type: string
- *                             example: "PS102 Personal Effectiveness and Productivity"
+ *                             example: "DOCUMENT COURSE"
  *                             description: The name of the course
+ *                           courseResources:
+ *                             type: string
+ *                             nullable: true
+ *                             example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-resources/1743643964048-David Okonkwo Resume .pdf"
+ *                             description: The URL of the course resources (null if not provided)
  *                       chapter:
  *                         type: object
  *                         properties:
  *                           id:
  *                             type: string
  *                             format: uuid
- *                             example: d23fd6d4-6416-4474-b056-748d162f34fa
+ *                             example: 0088909d-5a6a-4931-acd7-6af3084b7ade
  *                             description: The ID of the chapter
  *                           title:
  *                             type: string
- *                             example: "Chapter 1"
+ *                             example: "Introduction to Emotional Resilience and Well-Being"
  *                             description: The title of the chapter
+ *                           description:
+ *                             type: string
+ *                             example: "This is a description for a resource"
+ *                             description: The description of the chapter
  *                           chapterNumber:
  *                             type: integer
  *                             example: 1
  *                             description: The chapter number within the course
+ *                           chapterResources:
+ *                             type: string
+ *                             nullable: true
+ *                             example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/chapter-resources/1743647463842-Demo_credit.docx"
+ *                             description: The URL of the chapter resources (null if not provided)
  *                           courseId:
  *                             type: string
  *                             format: uuid
- *                             example: abfb6988-c506-47f2-9fec-000ce3b35694
+ *                             example: 070200b9-bd6b-4bde-8a45-99a247ed6f98
  *                             description: The ID of the course the chapter belongs to
  *                           isDeleted:
  *                             type: boolean
@@ -1303,7 +1353,7 @@ router.post('/delete-course', courseController.deleteCourse);
  *                           created_at:
  *                             type: string
  *                             format: date-time
- *                             example: 2025-03-17T20:25:23.263Z
+ *                             example: "2025-04-03T02:12:23.866Z"
  *                             description: The creation date of the chapter
  *                       video:
  *                         type: array
@@ -1313,11 +1363,11 @@ router.post('/delete-course', courseController.deleteCourse);
  *                             id:
  *                               type: string
  *                               format: uuid
- *                               example: ff357bca-0e51-46f4-a37f-8fafbb9feb5e
+ *                               example: a8b4fe46-5337-49d7-b155-fc2cd6e2f2fd
  *                               description: The ID of the video
  *                             videoURL:
  *                               type: string
- *                               example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1742243123271-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
+ *                               example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1743646343875-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
  *                               description: The URL of the video file
  *                             isDeleted:
  *                               type: boolean
@@ -1330,7 +1380,7 @@ router.post('/delete-course', courseController.deleteCourse);
  *                             chapterId:
  *                               type: string
  *                               format: uuid
- *                               example: d23fd6d4-6416-4474-b056-748d162f34fa
+ *                               example: 0088909d-5a6a-4931-acd7-6af3084b7ade
  *                               description: The ID of the chapter the video belongs to
  *                             uploadStatus:
  *                               type: string
@@ -1339,7 +1389,7 @@ router.post('/delete-course', courseController.deleteCourse);
  *                             created_at:
  *                               type: string
  *                               format: date-time
- *                               example: 2025-03-17T20:25:23.326Z
+ *                               example: "2025-04-03T02:12:23.881Z"
  *                               description: The creation date of the video
  *                 message:
  *                   type: string
@@ -1348,23 +1398,26 @@ router.post('/delete-course', courseController.deleteCourse);
  *                 status: success
  *                 data:
  *                   - course:
- *                       id: abfb6988-c506-47f2-9fec-000ce3b35694
- *                       name: "PS102 Personal Effectiveness and Productivity"
+ *                       id: 070200b9-bd6b-4bde-8a45-99a247ed6f98
+ *                       name: "DOCUMENT COURSE"
+ *                       courseResources: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-resources/1743643964048-David Okonkwo Resume .pdf"
  *                     chapter:
- *                       id: d23fd6d4-6416-4474-b056-748d162f34fa
- *                       title: "Chapter 1"
+ *                       id: 0088909d-5a6a-4931-acd7-6af3084b7ade
+ *                       title: "Introduction to Emotional Resilience and Well-Being"
+ *                       description: "This is a description for a resource"
  *                       chapterNumber: 1
- *                       courseId: abfb6988-c506-47f2-9fec-000ce3b35694
+ *                       chapterResources: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/chapter-resources/1743647463842-Demo_credit.docx"
+ *                       courseId: 070200b9-bd6b-4bde-8a45-99a247ed6f98
  *                       isDeleted: false
- *                       created_at: "2025-03-17T20:25:23.263Z"
+ *                       created_at: "2025-04-03T02:12:23.866Z"
  *                     video:
- *                       - id: ff357bca-0e51-46f4-a37f-8fafbb9feb5e
- *                         videoURL: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1742243123271-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
+ *                       - id: a8b4fe46-5337-49d7-b155-fc2cd6e2f2fd
+ *                         videoURL: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1743646343875-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
  *                         isDeleted: false
  *                         duration: "00:24"
- *                         chapterId: d23fd6d4-6416-4474-b056-748d162f34fa
+ *                         chapterId: 0088909d-5a6a-4931-acd7-6af3084b7ade
  *                         uploadStatus: "processing"
- *                         created_at: "2025-03-17T20:25:23.326Z"
+ *                         created_at: "2025-04-03T02:12:23.881Z"
  *                 message: "Chapters and lessons successfully fetched"
  *       400:
  *         description: Bad Request - Validation errors
@@ -1378,9 +1431,12 @@ router.post('/delete-course', courseController.deleteCourse);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: "Please log in again"
+ *                   example: "ChapterId and CourseId are required"
+ *                   enum:
+ *                     - Please log in again
+ *                     - ChapterId and CourseId are required
  *       404:
- *         description: Not Found - Course or lessons not found
+ *         description: Not Found - Course or lesson not found
  *         content:
  *           application/json:
  *             schema:
@@ -1414,7 +1470,7 @@ router.get('/get-lesson', courseController.getCourseLesson);
  *         schema:
  *           type: string
  *           format: uuid
- *         example: abfb6988-c506-47f2-9fec-000ce3b35694
+ *         example: 070200b9-bd6b-4bde-8a45-99a247ed6f98
  *         description: The ID of the course to retrieve lessons for
  *     responses:
  *       200:
@@ -1438,11 +1494,11 @@ router.get('/get-lesson', courseController.getCourseLesson);
  *                           id:
  *                             type: string
  *                             format: uuid
- *                             example: abfb6988-c506-47f2-9fec-000ce3b35694
+ *                             example: 070200b9-bd6b-4bde-8a45-99a247ed6f98
  *                             description: The ID of the course
  *                           name:
  *                             type: string
- *                             example: "PS102 Personal Effectiveness and Productivity"
+ *                             example: "DOCUMENT COURSE"
  *                             description: The name of the course
  *                           scenarioName:
  *                             type: string
@@ -1458,6 +1514,11 @@ router.get('/get-lesson', courseController.getCourseLesson);
  *                             format: uuid
  *                             example: 20104f7d-a689-4c27-864a-db899e19068a
  *                             description: The ID of the module associated with the course
+ *                           courseResources:
+ *                             type: string
+ *                             nullable: true
+ *                             example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-resources/1743643964048-David Okonkwo Resume .pdf"
+ *                             description: The URL of the course resources (null if not provided)
  *                           isDeleted:
  *                             type: boolean
  *                             example: false
@@ -1465,7 +1526,7 @@ router.get('/get-lesson', courseController.getCourseLesson);
  *                           created_at:
  *                             type: string
  *                             format: date-time
- *                             example: 2025-03-17T18:54:08.195Z
+ *                             example: "2025-04-03T01:32:44.488Z"
  *                             description: The creation date of the course
  *                       chapters:
  *                         type: array
@@ -1475,16 +1536,25 @@ router.get('/get-lesson', courseController.getCourseLesson);
  *                             id:
  *                               type: string
  *                               format: uuid
- *                               example: d23fd6d4-6416-4474-b056-748d162f34fa
+ *                               example: 0088909d-5a6a-4931-acd7-6af3084b7ade
  *                               description: The ID of the chapter
  *                             title:
  *                               type: string
- *                               example: "Chapter 1"
+ *                               example: "Introduction to Emotional Resilience and Well-Being"
  *                               description: The title of the chapter
+ *                             description:
+ *                               type: string
+ *                               example: "This is a description for a resource"
+ *                               description: The description of the chapter
  *                             chapterNumber:
  *                               type: integer
  *                               example: 1
  *                               description: The chapter number within the course
+ *                             chapterResources:
+ *                               type: string
+ *                               nullable: true
+ *                               example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/chapter-resources/1743646342827-Honeybook Cover Letter.docx"
+ *                               description: The URL of the chapter resources (null if not provided)
  *                             videos:
  *                               type: array
  *                               items:
@@ -1493,11 +1563,11 @@ router.get('/get-lesson', courseController.getCourseLesson);
  *                                   id:
  *                                     type: string
  *                                     format: uuid
- *                                     example: ff357bca-0e51-46f4-a37f-8fafbb9feb5e
+ *                                     example: a8b4fe46-5337-49d7-b155-fc2cd6e2f2fd
  *                                     description: The ID of the video
  *                                   videoURL:
  *                                     type: string
- *                                     example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1742243123271-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
+ *                                     example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1743646343875-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
  *                                     description: The URL of the video file
  *                                   isDeleted:
  *                                     type: boolean
@@ -1510,7 +1580,7 @@ router.get('/get-lesson', courseController.getCourseLesson);
  *                                   chapterId:
  *                                     type: string
  *                                     format: uuid
- *                                     example: d23fd6d4-6416-4474-b056-748d162f34fa
+ *                                     example: 0088909d-5a6a-4931-acd7-6af3084b7ade
  *                                     description: The ID of the chapter the video belongs to
  *                                   uploadStatus:
  *                                     type: string
@@ -1519,12 +1589,12 @@ router.get('/get-lesson', courseController.getCourseLesson);
  *                                   created_at:
  *                                     type: string
  *                                     format: date-time
- *                                     example: 2025-03-17T20:25:23.326Z
+ *                                     example: "2025-04-03T02:12:23.881Z"
  *                                     description: The creation date of the video
  *                             created_at:
  *                               type: string
  *                               format: date-time
- *                               example: 2025-03-17T20:25:23.263Z
+ *                               example: "2025-04-03T02:12:23.866Z"
  *                               description: The creation date of the chapter
  *                 message:
  *                   type: string
@@ -1533,50 +1603,43 @@ router.get('/get-lesson', courseController.getCourseLesson);
  *                 status: success
  *                 data:
  *                   - course:
- *                       id: abfb6988-c506-47f2-9fec-000ce3b35694
- *                       name: "PS102 Personal Effectiveness and Productivity"
+ *                       id: 070200b9-bd6b-4bde-8a45-99a247ed6f98
+ *                       name: "DOCUMENT COURSE"
  *                       scenarioName: "Intermediate"
  *                       scenarioId: 2c093d7a-bfc6-4e25-af67-7aeb7dae64b9
  *                       moduleId: 20104f7d-a689-4c27-864a-db899e19068a
+ *                       courseResources: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-resources/1743643964048-David Okonkwo Resume .pdf"
  *                       isDeleted: false
- *                       created_at: "2025-03-17T18:54:08.195Z"
+ *                       created_at: "2025-04-03T01:32:44.488Z"
  *                     chapters:
- *                       - id: d23fd6d4-6416-4474-b056-748d162f34fa
- *                         title: "Chapter 1"
+ *                       - id: 0088909d-5a6a-4931-acd7-6af3084b7ade
+ *                         title: "Introduction to Emotional Resilience and Well-Being"
+ *                         description: "This is a description for a resource"
  *                         chapterNumber: 1
+ *                         chapterResources: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/chapter-resources/1743646342827-Honeybook Cover Letter.docx"
  *                         videos:
- *                           - id: ff357bca-0e51-46f4-a37f-8fafbb9feb5e
- *                             videoURL: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1742243123271-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
+ *                           - id: a8b4fe46-5337-49d7-b155-fc2cd6e2f2fd
+ *                             videoURL: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1743646343875-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
  *                             isDeleted: false
  *                             duration: "00:24"
- *                             chapterId: d23fd6d4-6416-4474-b056-748d162f34fa
+ *                             chapterId: 0088909d-5a6a-4931-acd7-6af3084b7ade
  *                             uploadStatus: "processing"
- *                             created_at: "2025-03-17T20:25:23.326Z"
- *                         created_at: "2025-03-17T20:25:23.263Z"
- *                       - id: 03f4dbb1-533c-49dd-be7d-19ea4a4d2625
- *                         title: "Chapter 2"
+ *                             created_at: "2025-04-03T02:12:23.881Z"
+ *                         created_at: "2025-04-03T02:12:23.866Z"
+ *                       - id: 4bf0434f-04ab-49ea-9654-5eb548dfd796
+ *                         title: "Introduction to Emotional Resilience and Well-Bein"
+ *                         description: "This is a description for a without resumhh"
  *                         chapterNumber: 2
+ *                         chapterResources: null
  *                         videos:
- *                           - id: bc417a3c-3c79-49e8-b199-c91e18c92ec8
- *                             videoURL: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1742243377519-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
+ *                           - id: 8e99d987-d8aa-4422-b25b-35eda67531f9
+ *                             videoURL: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1743646489242-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
  *                             isDeleted: false
  *                             duration: "00:24"
- *                             chapterId: 03f4dbb1-533c-49dd-be7d-19ea4a4d2625
+ *                             chapterId: 4bf0434f-04ab-49ea-9654-5eb548dfd796
  *                             uploadStatus: "processing"
- *                             created_at: "2025-03-17T20:29:37.526Z"
- *                         created_at: "2025-03-17T20:29:37.518Z"
- *                       - id: 8b2565a5-e002-43eb-b520-2c7f8fff40bf
- *                         title: "Chapter 3"
- *                         chapterNumber: 3
- *                         videos:
- *                           - id: 17fe3554-61f3-466b-b9db-9fb75cf3276c
- *                             videoURL: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1742243452503-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
- *                             isDeleted: false
- *                             duration: "00:24"
- *                             chapterId: 8b2565a5-e002-43eb-b520-2c7f8fff40bf
- *                             uploadStatus: "processing"
- *                             created_at: "2025-03-17T20:30:52.510Z"
- *                         created_at: "2025-03-17T20:30:52.502Z"
+ *                             created_at: "2025-04-03T02:14:49.246Z"
+ *                         created_at: "2025-04-03T02:14:49.241Z"
  *                 message: "Chapters and lessons successfully fetched"
  *       400:
  *         description: Bad Request - Validation errors
@@ -1590,7 +1653,11 @@ router.get('/get-lesson', courseController.getCourseLesson);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: "Please log in again"
+ *                   example: "CourseId is required"
+ *                   enum:
+ *                     - Please log in again
+ *                     - CourseId is required
+ *                     - Course has already been deleted
  *       404:
  *         description: Not Found - Course or lessons not found
  *         content:
@@ -1614,7 +1681,7 @@ router.get('/get-lessons', courseController.getCourseLessons);
  * /course/create-lesson:
  *   post:
  *     summary: Create a new lesson
- *     description: Creates a new lesson (chapter and video) for a course. Only admins who created the course can create lessons. Requires authentication via a valid access token. Returns a pre-signed URL to upload the video file.
+ *     description: Creates a new lesson (chapter and video) for a course, including a chapter with optional resources and a video with a pre-signed URL for upload. Only admins who created the course can create lessons. Requires authentication via a valid access token. The request includes JSON fields and an optional file for chapter resources. Returns a pre-signed URL to upload the video file.
  *     tags:
  *       - Course
  *     security:
@@ -1622,7 +1689,7 @@ router.get('/get-lessons', courseController.getCourseLessons);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -1663,6 +1730,10 @@ router.get('/get-lessons', courseController.getCourseLessons);
  *                 type: string
  *                 example: "00:02:30"
  *                 description: The duration of the video in HH:MM:SS format
+ *               chapterResources:
+ *                 type: string
+ *                 format: binary
+ *                 description: Optional resource file for the chapter (e.g., PDF, DOC) (optional)
  *     responses:
  *       201:
  *         description: Lesson created successfully, pre-signed URL returned for video upload
@@ -1723,9 +1794,9 @@ router.get('/get-lessons', courseController.getCourseLessons);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: "Only an admin can create a chapter"
+ *                   example: "Only an admin can create a lesson"
  *                   enum:
- *                     - Only an admin can create a chapter
+ *                     - Only an admin can create a lesson
  *                     - You are not authorized to create a lesson for this course
  *       404:
  *         description: Not Found - Course not found
@@ -1817,13 +1888,13 @@ router.get('/get-lessons', courseController.getCourseLessons);
  *                   type: string
  *                   example: "Failed to upload the video to the storage service"
  */
-router.post('/create-lesson', courseController.createLesson);
+router.post('/create-lesson', multerUpload.single('chapterResources'), courseController.createLesson);
 /**
  * @openapi
  * /course/update-lesson:
  *   post:
  *     summary: Update an existing lesson
- *     description: Updates a lesson's title, description and/or video. Only admins can update lessons. Requires authentication via a valid access token. If a new video is provided, a pre-signed URL is returned for uploading the new video file.
+ *     description: Updates a lesson's title, description, resources, and/or video. Only admins can update lessons. Requires authentication via a valid access token. If a new video is provided, a pre-signed URL is returned for uploading the new video file. The request includes JSON fields and an optional file for chapter resources.
  *     tags:
  *       - Course
  *     security:
@@ -1831,7 +1902,7 @@ router.post('/create-lesson', courseController.createLesson);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -1849,7 +1920,11 @@ router.post('/create-lesson', courseController.createLesson);
  *               description:
  *                 type: string
  *                 example: "Updated Introduction to Self-Leadership is the beginning of leadership. One should learn how to lead before leading others"
- *                 description: The new title of the lesson (optional)
+ *                 description: The new description of the lesson (optional)
+ *               chapterResources:
+ *                 type: string
+ *                 format: binary
+ *                 description: Optional resource file for the chapter (e.g., PDF, DOC) (optional)
  *               fileName:
  *                 type: string
  *                 example: "Vite + React - Google Chrome 2023-07-22 02-03-06"
@@ -1894,12 +1969,21 @@ router.post('/create-lesson', courseController.createLesson);
  *                 message:
  *                   type: string
  *                   example: "Lesson updated successfully."
- *               example:
- *                 status: success
- *                 data:
- *                   signedUrl: "https://mock-presigned-url.s3.amazonaws.com/upload?X-Amz-Algorithm=AWS4-HMAC-SHA256"
- *                   key: "course-videos/1742244360234-Vite + React - Google Chrome 2023-07-22 02-03-06"
- *                 message: "Lesson updated successfully."
+ *               examples:
+ *                 withVideoUpdate:
+ *                   summary: Response when video is updated
+ *                   value:
+ *                     status: success
+ *                     data:
+ *                       signedUrl: "https://mock-presigned-url.s3.amazonaws.com/upload?X-Amz-Algorithm=AWS4-HMAC-SHA256"
+ *                       key: "course-videos/1742244360234-Vite + React - Google Chrome 2023-07-22 02-03-06"
+ *                     message: "Lesson updated successfully."
+ *                 withoutVideoUpdate:
+ *                   summary: Response when no video is updated
+ *                   value:
+ *                     status: success
+ *                     data: null
+ *                     message: "Lesson updated successfully."
  *       400:
  *         description: Bad Request - Validation errors
  *         content:
@@ -1931,7 +2015,7 @@ router.post('/create-lesson', courseController.createLesson);
  *                   type: string
  *                   example: "Only an admin can update a lesson"
  *       404:
- *         description: Not Found - Chapter not found
+ *         description: Not Found - Chapter or video not found
  *         content:
  *           application/json:
  *             schema:
@@ -1943,6 +2027,9 @@ router.post('/create-lesson', courseController.createLesson);
  *                 message:
  *                   type: string
  *                   example: "Chapter not found"
+ *                   enum:
+ *                     - Chapter not found
+ *                     - Video not found
  *       500:
  *         description: Internal Server Error - Failed to update chapter or video metadata
  *         content:
@@ -1959,6 +2046,8 @@ router.post('/create-lesson', courseController.createLesson);
  *                   enum:
  *                     - Failed to update chapter
  *                     - Failed to update lesson video
+ *                     - Failed to delete the existing document
+ *                     - Invalid file URL. Could not extract object key
  */
 /**
  * @openapi
@@ -2020,7 +2109,7 @@ router.post('/create-lesson', courseController.createLesson);
  *                   type: string
  *                   example: "Failed to upload the video to the storage service"
  */
-router.post('/update-lesson', courseController.updateLesson);
+router.post('/update-lesson', multerUpload.single('chapterResources'), courseController.updateLesson);
 /**
  * @openapi
  * /course/video/upload-status:
