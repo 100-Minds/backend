@@ -4,38 +4,30 @@ import { DateTime } from 'luxon';
 
 class QuizRepository {
 	create = async (payload: Partial<IQuiz>) => {
-		return await knexDb.table('quiz_scores').insert(payload).returning('*');
+		return await knexDb.table('quiz').insert(payload).returning('*');
 	};
 
 	findById = async (id: string): Promise<IQuiz | null> => {
-		return await knexDb.table('quiz_scores').where({ id }).first();
+		return await knexDb.table('quiz').where({ id }).first();
 	};
 
-    findQuizByCourseId = async (courseId: string): Promise<IQuiz[] | null> => {
-		return await knexDb.table('quiz_scores').where({ courseId }).select();;
-	}
-
-	findQuizByCourseAndUserId = async (courseId: string, userId: string): Promise<IQuiz[] | null> => {
-		return await knexDb.table('quiz_scores').where({ courseId, userId }).select();
+	findQuizByChapterId = async (chapterId: string): Promise<IQuiz[] | null> => {
+		return await knexDb.table('quiz').where({ chapterId }).select();
 	};
 
-	findQuizByUserId = async (userId: string): Promise<IQuiz[]> => {
-		return await knexDb.table('quiz_scores').where({ userId }).orderBy('created_at', 'asc');
-	};
-
-	findAllUserCourseQuizScores = async (userId: string): Promise<IQuiz[]> => {
-		return await knexDb.table('quiz_scores').where({ userId }).whereNotNull('courseId').select();
+	findQuizByQuestionAndChapterId = async (question: string, chapterId: string): Promise<IQuiz | null> => {
+		return await knexDb.table('quiz').where({ question, chapterId }).first();
 	};
 
 	update = async (id: string, payload: Partial<IQuiz>): Promise<IQuiz[]> => {
-		return await knexDb('quiz_scores')
+		return await knexDb('quiz')
 			.where({ id })
 			.update({ ...payload, updated_at: DateTime.now().toJSDate() })
 			.returning('*');
 	};
 
 	findAll = async () => {
-		return await knexDb.table('quiz_scores').orderBy('created_at', 'asc');
+		return await knexDb.table('quiz').orderBy('created_at', 'asc');
 	};
 }
 

@@ -1,11 +1,12 @@
-import { QuizDifficulty } from '../constants';
-
 export interface IQuiz {
 	id: string;
-	userId: string;
-	courseId: string;
-	score: number;
-	difficulty: QuizDifficulty;
+	question: string;
+	optionA: string;
+	optionB: string;
+	optionC: string;
+	optionD: string;
+	isCorrect: string;
+	chapterId: string;
 	created_at?: Date;
 	updated_at?: Date;
 }

@@ -22,11 +22,12 @@ import {
 	scenarioRouter,
 	courseRouter,
 	rolePlayRouter,
-	quizRouter,
+	quizScoresRouter,
 	powerSkillRouter,
 	learningJourneyRouter,
 	lastWatchedRouter,
 	statsRouter,
+	quizRouter,
 } from '@/routes';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
@@ -176,11 +177,12 @@ app.use('/api/v1/team', teamRouter);
 app.use('/api/v1/scenario', scenarioRouter);
 app.use('/api/v1/course', courseRouter);
 app.use('/api/v1/role-play', rolePlayRouter);
-app.use('/api/v1/quiz', quizRouter);
+app.use('/api/v1/quiz-score', quizScoresRouter);
 app.use('/api/v1/skill', powerSkillRouter);
 app.use('/api/v1/journey', learningJourneyRouter);
 app.use('/api/v1/last-watched', lastWatchedRouter);
 app.use('/api/v1/statistics', statsRouter);
+app.use('/api/v1/quiz', quizRouter);
 
 // Swagger documentation
 app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
