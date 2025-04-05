@@ -52,6 +52,48 @@ router.use(protect);
  *                         - optionC
  *                         - optionD
  *                       description: The user's selected answer option
+ *                     quizId:
+ *                       type: string
+ *                       format: uuid
+ *                       example: 4baaea2f-e9e3-44da-a272-91a191035837
+ *                       description: The ID of the specific quiz question
+ *                     selectedOption:
+ *                       type: string
+ *                       example: optionB
+ *                       enum:
+ *                         - optionA
+ *                         - optionB
+ *                         - optionC
+ *                         - optionD
+ *                       description: The user's selected answer option
+ *                     quizId:
+ *                       type: string
+ *                       format: uuid
+ *                       example: 4baaea2f-e9e3-44da-a272-91a191035837
+ *                       description: The ID of the specific quiz question
+ *                     selectedOption:
+ *                       type: string
+ *                       example: optionB
+ *                       enum:
+ *                         - optionA
+ *                         - optionB
+ *                         - optionC
+ *                         - optionD
+ *                       description: The user's selected answer option
+ *                     quizId:
+ *                       type: string
+ *                       format: uuid
+ *                       example: 4baaea2f-e9e3-44da-a272-91a191035837
+ *                       description: The ID of the specific quiz question
+ *                     selectedOption:
+ *                       type: string
+ *                       example: optionB
+ *                       enum:
+ *                         - optionA
+ *                         - optionB
+ *                         - optionC
+ *                         - optionD
+ *                       description: The user's selected answer option
  *                 minItems: 1
  *                 description: Array of user answers for each quiz question in the chapter
  *             required:
