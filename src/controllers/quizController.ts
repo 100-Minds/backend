@@ -37,8 +37,14 @@ class QuizController {
 		if (!validOptions.optionB) {
 			throw new AppError('Option B is required', 400);
 		}
-		if (!isCorrect || !validOptions[isCorrect]) {
-			throw new AppError('Correct answer must match one of the provided options', 400);
+		if (!isCorrect) {
+			throw new AppError('Correct answer is required', 400);
+		}
+		const providedOptions = Object.entries(validOptions)
+			.filter(([, value]) => typeof value === 'string' && value.trim() !== '')
+			.map(([key]) => key);
+		if (!providedOptions.includes(isCorrect)) {
+			throw new AppError(`Correct answer must match one of the provided options: ${providedOptions.join(', ')}`, 400);
 		}
 
 		const chapter = await courseRepository.getChapter(chapterId);
@@ -107,26 +113,36 @@ class QuizController {
 			throw new AppError('Quiz not found', 404);
 		}
 
-		const validOptions = {
-			optionA,
-			optionB,
-			optionC,
-			optionD,
+		const updatedOptions = {
+			optionA: optionA ?? quiz.optionA,
+			optionB: optionB ?? quiz.optionB,
+			optionC: optionC ?? null,
+			optionD: optionD ?? null,
 		};
-		if (!isCorrect || !validOptions[isCorrect]) {
-			throw new AppError('Correct answer must match one of the provided options', 400);
+
+		const availableOptions = ['optionA', 'optionB'];
+		if (updatedOptions.optionC) availableOptions.push('optionC');
+		if (updatedOptions.optionD) availableOptions.push('optionD');
+		if (!availableOptions.includes(isCorrect)) {
+			throw new AppError(
+				`Correct answer must be one of the provided options: ${availableOptions.join(', ')}`,
+				400
+			);
 		}
 
 		const updatedQuizData: IQuiz = {
 			...(question && { question }),
 			...(chapterId && { chapterId }),
-			...(optionA && { optionA: validOptions.optionA }),
-			...(optionB && { optionB: validOptions.optionB }),
-			optionC: optionC !== undefined ? validOptions.optionC : null,
-			optionD: optionD !== undefined ? validOptions.optionD : null,
-			...(isCorrect && { isCorrect }),
+			optionA: updatedOptions.optionA,
+			optionB: updatedOptions.optionB,
+			optionC: updatedOptions.optionC,
+			optionD: updatedOptions.optionD,
+			isCorrect,
 		};
-
+		if (Object.keys(updatedQuizData).length === 0) {
+			throw new AppError('No fields to update', 400);
+		}
+		
 		const [updatedQuiz] = await quizRepository.update(quizId, updatedQuizData);
 		if (!updatedQuiz) {
 			throw new AppError('Failed to update quiz', 500);
