@@ -6,6 +6,7 @@ export interface IQuiz {
 	optionC: string;
 	optionD: string;
 	isCorrect: string;
+	courseId: string;
 	chapterId: string;
 	created_at?: Date;
 	updated_at?: Date;

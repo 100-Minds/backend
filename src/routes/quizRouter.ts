@@ -27,6 +27,11 @@ router.use(protect);
  *                 type: string
  *                 example: Are you a boy?
  *                 description: The question for the quiz
+ *               courseId:
+ *                 type: string
+ *                 format: uuid
+ *                 example: 0088909d-5a6a-4931-acd7-6af3084ji809
+ *                 description: The ID of the course the chapter belongs to
  *               chapterId:
  *                 type: string
  *                 format: uuid
@@ -59,6 +64,7 @@ router.use(protect);
  *                 description: The key of the correct answer (must match one of the provided options)
  *             required:
  *               - question
+ *               - courseId
  *               - chapterId
  *               - optionA
  *               - optionB
@@ -113,6 +119,11 @@ router.use(protect);
  *                           - optionC
  *                           - optionD
  *                         description: The key of the correct answer
+ *                       courseId:
+ *                         type: string
+ *                         format: uuid
+ *                         example: 0088909d-5a6a-4931-acd7-6af3084ty780
+ *                         description: The ID of the course the chapter belongs to
  *                       chapterId:
  *                         type: string
  *                         format: uuid
@@ -136,6 +147,7 @@ router.use(protect);
  *                     optionC: Maybe
  *                     optionD: Other
  *                     isCorrect: optionA
+ *                     courseId: 0088909d-5a6a-4931-acd7-6af3084mji98
  *                     chapterId: 0088909d-5a6a-4931-acd7-6af3084b7ade
  *                     created_at: 2025-04-05T20:30:55.731Z
  *                 message: Quiz created successfully

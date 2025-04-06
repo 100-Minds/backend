@@ -7,7 +7,7 @@ import { IQuiz } from '@/common/interfaces';
 class QuizController {
 	createQuiz = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { question, chapterId, optionA, optionB, optionC, optionD, isCorrect } = req.body;
+		const { question, chapterId, courseId, optionA, optionB, optionC, optionD, isCorrect } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -28,6 +28,9 @@ class QuizController {
 		if (!chapterId) {
 			throw new AppError('Chapter ID is required', 400);
 		}
+		if (!courseId) {
+			throw new AppError('Course ID is required', 400);
+		}
 		if (!validOptions.optionA) {
 			throw new AppError('Option A is required', 400);
 		}
@@ -40,6 +43,9 @@ class QuizController {
 
 		const chapter = await courseRepository.getChapter(chapterId);
 		if (!chapter) throw new AppError('Chapter not found', 404);
+		if (chapter.courseId !== courseId) {
+			throw new AppError('Chapter does not belong to the specified course', 400);
+		}
 
 		const questionExist = await quizRepository.findQuizByQuestionAndChapterId(question, chapterId);
 		if (questionExist) {
@@ -49,6 +55,7 @@ class QuizController {
 		const [quiz] = await quizRepository.create({
 			question,
 			chapterId,
+			courseId,
 			optionA,
 			optionB,
 			...(validOptions.optionC && validOptions.optionC ? { optionC: validOptions.optionC } : null),

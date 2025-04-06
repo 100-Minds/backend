@@ -9,6 +9,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.string('optionC').nullable();
 		table.string('optionD').nullable();
 		table.string('isCorrect').notNullable();
+		table.uuid('courseId').notNullable().references('id').inTable('course').onDelete('SET NULL');
 		table.uuid('chapterId').notNullable().references('id').inTable('course_chapters').onDelete('SET NULL');
 		table.timestamps(true, true);
 	});
