@@ -29,6 +29,10 @@ class QuizRepository {
 	findAll = async () => {
 		return await knexDb.table('quiz').orderBy('created_at', 'asc');
 	};
+
+	delete = async (id: string) => {
+		return await knexDb.table('quiz').where({ id }).delete().returning('*');
+	};
 }
 
 export const quizRepository = new QuizRepository();

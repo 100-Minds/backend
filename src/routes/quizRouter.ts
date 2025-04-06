@@ -524,5 +524,108 @@ router.get('/chapter', quizController.findQuizByChapterId);
  *                   example: Failed to update quiz
  */
 router.post('/update', quizController.updateQuiz);
+/**
+ * @openapi
+ * /quiz/delete:
+ *   post:
+ *     summary: Delete a quiz permanently
+ *     description: Permanently deletes a specific quiz identified by its ID. Requires authentication via a valid access token. Only admins can delete quizzes. The quizId must be provided in the request body.
+ *     tags:
+ *       - Quiz
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               quizId:
+ *                 type: string
+ *                 format: uuid
+ *                 example: df69938a-7242-4525-b125-e94fe36b235b
+ *                 description: The ID of the quiz to delete
+ *             required:
+ *               - quizId
+ *     responses:
+ *       200:
+ *         description: Quiz deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: null
+ *                   nullable: true
+ *                   description: No data returned on successful deletion
+ *                 message:
+ *                   type: string
+ *                   example: Quiz deleted successfully
+ *               example:
+ *                 status: success
+ *                 data: null
+ *                 message: Quiz deleted successfully
+ *       400:
+ *         description: Bad Request - Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Quiz ID is required
+ *                   enum:
+ *                     - Please log in again
+ *                     - Quiz ID is required
+ *       403:
+ *         description: Forbidden - User is not an admin
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Only an admin can delete a quiz
+ *       404:
+ *         description: Not Found - Quiz not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Quiz not found
+ *       500:
+ *         description: Internal Server Error - Deletion failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Failed to delete quiz
+ */
+router.post('/delete', quizController.deleteQuiz);
 
 export { router as quizRouter };

@@ -127,6 +127,33 @@ class QuizController {
 
 		return AppResponse(res, 200, toJSON([updatedQuiz]), 'Quiz updated successfully');
 	});
+
+	deleteQuiz = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { quizId } = req.body;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (user.role === 'user') {
+			throw new AppError('Only an admin can delete a quiz', 403);
+		}
+		if (!quizId) {
+			throw new AppError('Quiz ID is required', 400);
+		}
+
+		const quiz = await quizRepository.findById(quizId);
+		if (!quiz) {
+			throw new AppError('Quiz not found', 404);
+		}
+
+		const deletedQuiz = await quizRepository.delete(quizId);
+		if (!deletedQuiz) {
+			throw new AppError('Failed to delete quiz', 500);
+		}
+
+		return AppResponse(res, 200, null, 'Quiz deleted successfully');
+	});
 }
 
 export const quizController = new QuizController();
