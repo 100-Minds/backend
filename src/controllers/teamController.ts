@@ -194,7 +194,7 @@ class TeamController {
 			throw new AppError('Team not found', 404);
 		}
 		if (team.ownerId !== user.id) {
-			throw new AppError('You are not authorized to invite to this team', 403);
+			throw new AppError('You are not authorized to invite a user to this team', 403);
 		}
 		if (team.isDeleted) {
 			throw new AppError('Cannot invite to a deleted team', 400);

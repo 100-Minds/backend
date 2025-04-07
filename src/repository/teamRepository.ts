@@ -7,8 +7,8 @@ class TeamRepository {
 		return await knexDb.table('teams').insert(payload).returning('*');
 	};
 
-	getTeam = async (teamId: string): Promise<ITeam | null> => {
-		const result = await knexDb.table('teams').where({ id: teamId }).select('*');
+	getTeam = async (id: string): Promise<ITeam | null> => {
+		const result = await knexDb.table('teams').where({ id }).select('*');
 		return result.length ? result[0] : null;
 	};
 
@@ -16,7 +16,7 @@ class TeamRepository {
 		return await knexDb
 			.table('teams')
 			.join('users', 'teams.ownerId', 'users.id')
-			.select('teams.*', 'users.firstName', 'users.lastName')
+			.select('teams.*', 'users.firstName', 'users.lastName', 'users.photo')
 			.where('teams.isDeleted', false)
 			.orderBy('teams.created_at', 'desc');
 	};
@@ -62,10 +62,12 @@ class TeamRepository {
 				'users.email',
 				'users.firstName',
 				'users.lastName',
-				'users.username'
+				'users.username',
+				'users.photo'
 			)
 			.where('team_members.teamId', teamId)
-			.where('team_members.isDeleted', false);
+			.andWhere('team_members.isDeleted', false)
+			.andWhere('team_members.statusRequest', 'accepted');
 	};
 
 	findByTeamAndUser = async (teamId: string, userId: string): Promise<ITeamMember | null> => {
