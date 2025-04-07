@@ -114,7 +114,7 @@ export const baseTemplate = (template: string): string => {
             <table class="email-content" cellpadding="0" cellspacing="0">
               <tr>
                 <td class="email-masthead">
-                  <img src="https://res.cloudinary.com/dnhu3eqn5/image/upload/v1741486702/100minds_r7zz76.jpg" 
+                  <img src="https://res.cloudinary.com/dnhu3eqn5/image/upload/v1744032665/100minds-logo_dxrpco.png" 
                        alt="100minds logo" 
                        width="100" 
                        height="auto" 
@@ -143,10 +143,10 @@ export const baseTemplate = (template: string): string => {
                     <tr>
                       <td class="content-cell-footer">
                         <p>
-                          This email was sent to you by 100minds. By using our services, you agree to our
+                          By using our services, you agree to our
                         </p>
                         <p>
-                          <a href="https://helpcenter.com">customer agreements</a>.
+                          <a href="https://app.100-minds.com/customer-agreement">customer agreements</a>.
                         </p>
                         <p>&copy; 100minds ${new Date().getFullYear()}. All rights reserved.</p>
                       </td>

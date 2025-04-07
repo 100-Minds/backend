@@ -13,6 +13,7 @@ import {
 	TeamInvitationSuccessData,
 	VideoUploadFailedData,
 	VideoUploadSuccessData,
+	WelcomeEmailData,
 } from '../interfaces';
 import type { Response, Request } from 'express';
 import { promisify } from 'util';
@@ -336,6 +337,19 @@ const generateOtp = () => {
 	});
 };
 
+const sendWelcomeEmail = async (email: string, name: string): Promise<void> => {
+	const emailData: WelcomeEmailData = {
+		to: email,
+		priority: 'high',
+		name,
+	};
+
+	addEmailToQueue({
+		type: 'welcomeEmail',
+		data: emailData,
+	});
+};
+
 const sendLoginEmail = async (email: string, name: string, otp: string): Promise<void> => {
 	const emailData: LoginEmailData = {
 		to: email,
@@ -488,6 +502,7 @@ export {
 	parseTimeSpent,
 	formatDuration,
 	generateOtp,
+	sendWelcomeEmail,
 	sendLoginEmail,
 	sendResetPasswordEmail,
 	sendForgotPasswordEmail,

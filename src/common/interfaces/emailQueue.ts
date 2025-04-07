@@ -3,6 +3,10 @@ export interface CommonDataFields {
 	priority: string;
 }
 
+export interface WelcomeEmailData extends CommonDataFields {
+	name: string;
+}
+
 export interface LoginEmailData extends CommonDataFields {
 	name: string;
 	otp: string;
@@ -37,16 +41,17 @@ export interface RemoveTeamMemberData extends CommonDataFields {
 
 export interface VideoUploadSuccessData extends CommonDataFields {
 	chapterNumber: number;
-	courseName: string
+	courseName: string;
 }
 
 export interface VideoUploadFailedData extends CommonDataFields {
 	chapterNumber: number;
-	courseName: string
+	courseName: string;
 }
 
 export type EmailJobData =
 	| { type: 'loginEmail'; data: LoginEmailData }
+	| { type: 'welcomeEmail'; data: WelcomeEmailData }
 	| { type: 'forgotPassword'; data: ForgotPasswordData }
 	| { type: 'resetPassword'; data: ResetPasswordData }
 	| { type: 'teamInvitation'; data: TeamInvitationData }

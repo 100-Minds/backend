@@ -7,3 +7,4 @@ export * from './teamInviteSuccess';
 export * from './removeMember';
 export * from './videoUploadSuccess';
 export * from './videoUploadFailed';
+export * from './welcomeEmail';

@@ -8,6 +8,7 @@ import {
 	RemoveTeamMemberData,
 	VideoUploadSuccessData,
 	VideoUploadFailedData,
+	WelcomeEmailData,
 } from '@/common/interfaces';
 import { logger } from '@/common/utils';
 import nodemailer from 'nodemailer';
@@ -21,6 +22,7 @@ import {
 	teamInviteSuccessEmail,
 	videoUploadFailedEmail,
 	videoUploadSuccessEmail,
+	welcomeEmail,
 } from '../templates';
 
 const transporter = nodemailer.createTransport({
@@ -38,6 +40,10 @@ export const sendEmail = async (job: EmailJobData) => {
 	let subject: string;
 
 	switch (type) {
+		case 'welcomeEmail':
+			htmlContent = welcomeEmail(data as WelcomeEmailData);
+			subject = 'Welcome to 100 Minds';
+			break;
 		case 'loginEmail':
 			htmlContent = loginEmail(data as LoginEmailData);
 			subject = 'Login Alert';

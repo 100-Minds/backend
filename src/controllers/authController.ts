@@ -15,6 +15,7 @@ import {
 	sendForgotPasswordEmail,
 	sendLoginEmail,
 	sendResetPasswordEmail,
+	sendWelcomeEmail,
 	setCookie,
 	toJSON,
 	verifyToken,
@@ -56,12 +57,15 @@ class AuthController {
 			throw new AppError('Failed to create user', 500);
 		}
 
+		console.log(user.email)
+
 		// const accessToken = generateAccessToken(user.id);
 		// const refreshToken = generateRefreshToken(user.id);
 
 		// setCookie(req, res, 'accessToken', accessToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.ACCESS));
 		// setCookie(req, res, 'refreshToken', refreshToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.REFRESH));
 
+		await sendWelcomeEmail(user.email, user.firstName);
 		return AppResponse(res, 201, toJSON([user]), 'User created successfully');
 	});
 
