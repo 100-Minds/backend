@@ -59,12 +59,7 @@ export const mainSchema = z.object({
 	accountType: z.enum(Object.values(AccountType) as [string, ...string[]]),
 	organizationLogo: z.string().min(7),
 	organizationName: z.string().min(3).trim(),
-	organizationWebsite: z
-		.string()
-		.min(7)
-		.refine((url) => /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/g.test(url), {
-			message: 'Invalid website URL',
-		}),
+	organizationWebsite: z.string().min(7),
 	organizationDescription: z.string().min(7),
 	bio: z.string().min(7),
 	careerGoals: z.string().min(7),
