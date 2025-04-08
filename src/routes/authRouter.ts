@@ -9,13 +9,13 @@ const router = express.Router();
  * /auth/sign-up:
  *   post:
  *     summary: Sign up a new user
- *     description: Creates a new user account with the provided details and returns the user data along with access and refresh tokens set as cookies.
+ *     description: Creates a new user account with the provided details. For organization accounts, an organization name and logo are required. Returns the user data without setting access or refresh tokens as cookies.
  *     tags:
  *       - Auth
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -24,23 +24,68 @@ const router = express.Router();
  *               - firstName
  *               - lastName
  *               - username
+ *               - accountType
  *             properties:
  *               email:
  *                 type: string
  *                 format: email
- *                 example: 1@2.com
+ *                 example: daviscarlos2404@gmail.com
+ *                 description: User's email address
  *               password:
  *                 type: string
  *                 example: password123
+ *                 description: User's password
  *               firstName:
  *                 type: string
- *                 example: David
+ *                 example: Daviiii
+ *                 description: User's first name
  *               lastName:
  *                 type: string
- *                 example: Okonkwo
+ *                 example: Daviii
+ *                 description: User's last name
  *               username:
  *                 type: string
- *                 example: Davheed2
+ *                 example: Daviiiii
+ *                 description: User's username
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin]
+ *                 example: user
+ *                 description: User's role (optional, defaults to user)
+ *               accountType:
+ *                 type: string
+ *                 enum: [personal, organization]
+ *                 example: organization
+ *                 description: Type of account (personal or organization)
+ *               organizationName:
+ *                 type: string
+ *                 example: Vigoplace
+ *                 description: Name of the organization (required if accountType is organization)
+ *               organizationWebsite:
+ *                 type: string
+ *                 format: uri
+ *                 example: null
+ *                 description: Website URL of the organization (optional for organization accounts)
+ *               organizationDescription:
+ *                 type: string
+ *                 example: null
+ *                 description: Description of the organization (optional for organization accounts)
+ *               organizationLogo:
+ *                 type: string
+ *                 format: binary
+ *                 description: Logo file for the organization (required if accountType is organization)
+ *             example:
+ *               email: daviscarlos2404@gmail.com
+ *               password: password123
+ *               firstName: Daviiii
+ *               lastName: Daviii
+ *               username: Daviiiii
+ *               role: user
+ *               accountType: organization
+ *               organizationName: Vigoplace
+ *               organizationWebsite: null
+ *               organizationDescription: null
+ *               organizationLogo: (binary file)
  *     responses:
  *       201:
  *         description: Successfully created user
@@ -60,50 +105,129 @@ const router = express.Router();
  *                       id:
  *                         type: string
  *                         format: uuid
- *                         example: c8d01b9a-b21d-4313-836b-37e55e4eb159
+ *                         example: 3464ef77-f2f8-4e76-b3c3-53f36aee368e
+ *                         description: The ID of the newly created user
  *                       email:
  *                         type: string
  *                         format: email
- *                         example: 1@2.com
+ *                         example: daviscarlos2404@gmail.com
+ *                         description: User's email address
  *                       username:
  *                         type: string
- *                         example: Davheed2
+ *                         example: Daviiiii
+ *                         description: User's username
  *                       firstName:
  *                         type: string
- *                         example: David
+ *                         example: Daviiii
+ *                         description: User's first name
  *                       lastName:
  *                         type: string
- *                         example: Okonkwo
+ *                         example: Daviii
+ *                         description: User's last name
  *                       photo:
  *                         type: string
  *                         nullable: true
  *                         example: null
+ *                         description: User's profile photo URL (null if not provided)
  *                       role:
  *                         type: string
  *                         enum:
  *                           - user
  *                           - admin
  *                         example: user
+ *                         description: User's role
  *                       isSuspended:
  *                         type: boolean
  *                         example: false
+ *                         description: Indicates if the user is suspended
  *                       isDeleted:
  *                         type: boolean
  *                         example: false
+ *                         description: Indicates if the user is deleted
  *                       created_at:
  *                         type: string
  *                         format: date-time
- *                         example: 2025-03-07T00:37:33.807Z
+ *                         example: 2025-04-08T14:26:27.192Z
+ *                         description: The creation date of the user
+ *                       accountType:
+ *                         type: string
+ *                         enum: [personal, organization]
+ *                         example: organization
+ *                         description: Type of account (personal or organization)
+ *                       organizationLogo:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *                         description: URL of the organization's logo (null for personal accounts)
+ *                       organizationName:
+ *                         type: string
+ *                         nullable: true
+ *                         example: Vigoplace
+ *                         description: Name of the organization (null for personal accounts)
+ *                       organizationWebsite:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *                         description: Website URL of the organization (null if not provided and null for personal accounts)
+ *                       organizationDescription:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *                         description: Description of the organization (null if not provided and null for personal accounts)
+ *                       bio:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *                         description: User's bio (null)
+ *                       careerGoals:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *                         description: User's career goals (null)
+ *                       opportunities:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *                         description: User's opportunities (null)
+ *                       strengths:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *                         description: User's strengths (null)
+ *                       assessment:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *                         description: User's assessment (null)
  *                 message:
  *                   type: string
  *                   example: User created successfully
- *         headers:
- *           Set-Cookie:
- *             schema:
- *               type: string
- *               example: accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; Path=/; HttpOnly, refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; Path=/; HttpOnly
+ *               example:
+ *                 status: success
+ *                 data:
+ *                   - id: 3464ef77-f2f8-4e76-b3c3-53f36aee368e
+ *                     email: daviscarlos2404@gmail.com
+ *                     username: Daviiiii
+ *                     firstName: Daviiii
+ *                     lastName: Daviii
+ *                     photo: null
+ *                     role: user
+ *                     isSuspended: false
+ *                     isDeleted: false
+ *                     created_at: 2025-04-08T14:26:27.192Z
+ *                     accountType: organization
+ *                     organizationLogo: null
+ *                     organizationName: Vigoplace
+ *                     organizationWebsite: null
+ *                     organizationDescription: null
+ *                     bio: null
+ *                     careerGoals: null
+ *                     opportunities: null
+ *                     strengths: null
+ *                     assessment: null
+ *                 message: User created successfully
  *       400:
- *         description: Bad Request - Incomplete signup data
+ *         description: Bad Request - Incomplete or invalid signup data
  *         content:
  *           application/json:
  *             schema:
@@ -114,7 +238,10 @@ const router = express.Router();
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: Incomplete signup data
+ *                   examples:
+ *                     - Incomplete signup data
+ *                     - Invalid account type
+ *                     - Organization name and logo are required
  *       409:
  *         description: Conflict - Email or username already exists
  *         content:
@@ -127,7 +254,9 @@ const router = express.Router();
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: User with this email already exists
+ *                   examples:
+ *                     - User with this email already exists
+ *                     - User with this username already exists
  *       500:
  *         description: Internal Server Error - Failed to create user
  *         content:
