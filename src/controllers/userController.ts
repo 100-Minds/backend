@@ -50,7 +50,7 @@ export class UserController {
 			'bio',
 			'careerGoals',
 			'opportunities',
-			'strenghts',
+			'strengths',
 		];
 		const updates = Object.keys(req.body);
 
