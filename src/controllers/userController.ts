@@ -42,7 +42,16 @@ export class UserController {
 
 	updateProfile = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const allowedUpdates = ['firstName', 'lastName', 'email', 'username'];
+		const allowedUpdates = [
+			'firstName',
+			'lastName',
+			'email',
+			'username',
+			'bio',
+			'careerGoals',
+			'opportunities',
+			'strenghts',
+		];
 		const updates = Object.keys(req.body);
 
 		if (!user) {
@@ -71,6 +80,71 @@ export class UserController {
 		}
 
 		return AppResponse(res, 200, toJSON(updateProfile), 'Profile updated successfully');
+	});
+
+	updateUserAssessment = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { userId, assessment } = req.body;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (user.role == 'user') {
+			throw new AppError('Only admins can update user assessment', 403);
+		}
+		if (!userId) {
+			throw new AppError('User ID is required', 400);
+		}
+		if (!assessment) {
+			throw new AppError('Assessment is required', 400);
+		}
+
+		const extinguishUser = await userRepository.findById(userId);
+		if (!extinguishUser) {
+			throw new AppError('User not found', 404);
+		}
+
+		const updateUserAssessment = await userRepository.update(userId, {
+			assessment,
+		});
+		if (!updateUserAssessment) {
+			throw new AppError('Failed to update user assessment', 500);
+		}
+
+		return AppResponse(res, 200, toJSON(updateUserAssessment), 'User assessment updated successfully');
+	});
+
+	updateOrganizationalAccount = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { file } = req;
+		const { organizationName, organizationWebsite, organizationDescription } = req.body;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (user.accountType !== 'organization') {
+			throw new AppError('Only organizational accounts can update their account', 403);
+		}
+
+		const organizationData: Partial<IUser> = { organizationName, organizationWebsite, organizationDescription };
+		if (organizationName) organizationData.organizationName = organizationName;
+		if (file) {
+			const { secureUrl } = await uploadPictureFile({
+				fileName: `organization-logo/${Date.now()}-${file.originalname}`,
+				buffer: file.buffer,
+				mimetype: file.mimetype,
+			});
+			organizationData.organizationLogo = secureUrl;
+		}
+		if (organizationWebsite) organizationData.organizationWebsite = organizationWebsite;
+		if (organizationDescription) organizationData.organizationDescription = organizationDescription;
+
+		const updateOrganization = await userRepository.update(user.id, organizationData);
+		if (!updateOrganization) {
+			throw new AppError('Failed to update organization data', 500);
+		}
+
+		return AppResponse(res, 200, toJSON(updateOrganization), 'Organization updated successfully');
 	});
 
 	uploadProfilePicture = catchAsync(async (req: Request, res: Response) => {

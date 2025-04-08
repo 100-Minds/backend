@@ -37,3 +37,8 @@ export enum LearningStatus {
 	IN_PROGRESS = 'in-progress',
 	COMPLETED = 'completed',
 }
+
+export enum AccountType {
+	PERSONAL = 'personal',
+	ORGANIZATION = 'organization',
+}

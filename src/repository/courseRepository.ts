@@ -9,6 +9,8 @@ import {
 	IModule,
 	ICourseWithModuleName,
 	ICourseChapterWithVideoUrl,
+	IScenario,
+	IQuiz,
 } from '@/common/interfaces';
 import { DateTime } from 'luxon';
 
@@ -239,10 +241,18 @@ class CourseRepository {
 
 	getCourseLesson = async (courseId: string, chapterId: string): Promise<IChapterLesson | null> => {
 		const course = await knexDb('course')
-			.select('id', 'name', 'courseResources')
+			.select('id', 'name', 'courseResources', 'scenarioId')
 			.where({ id: courseId, isDeleted: false })
 			.first();
 		if (!course) {
+			return null;
+		}
+
+		const rolePlay = await knexDb('sys_scenario')
+			.select('id', 'scenario', 'scenarioImage')
+			.where({ id: course.scenarioId, isDeleted: false })
+			.first();
+		if (!rolePlay) {
 			return null;
 		}
 
@@ -256,7 +266,15 @@ class CourseRepository {
 
 		const videos = await knexDb('course_videos')
 			.select('id', 'videoURL', 'isDeleted', 'duration', 'chapterId', 'uploadStatus', 'created_at')
-			.where({ chapterId, isDeleted: false });
+			.where({ chapterId, isDeleted: false })
+			.first();
+		if (!videos) {
+			return null;
+		}
+
+		const quiz = await knexDb('quiz')
+			.select('id', 'question', 'optionA', 'optionB', 'optionC', 'optionD')
+			.where({ chapterId });
 
 		const lesson: IChapterLesson = {
 			course: {
@@ -265,7 +283,9 @@ class CourseRepository {
 				courseResources: course.courseResources,
 			},
 			chapter: chapter as ICourseChapter,
-			video: videos as ICourseVideo[],
+			video: videos as ICourseVideo,
+			rolePlay: rolePlay as IScenario,
+			quiz: quiz as IQuiz[],
 		};
 
 		return lesson;

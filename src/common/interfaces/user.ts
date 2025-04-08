@@ -1,4 +1,4 @@
-import { Role } from '../constants';
+import { Role, AccountType } from '../constants';
 
 export interface IUser {
 	id: string;
@@ -12,6 +12,16 @@ export interface IUser {
 	otpExpires: Date;
 	photo: string;
 	role: Role;
+	accountType: AccountType;
+	organizationLogo: string;
+	organizationName: string;
+	organizationWebsite: string;
+	organizationDescription: string;
+	bio: string;
+	careerGoals: string;
+	opportunities: string;
+	strenghts: string;
+	assessment: string;
 	passwordResetRetries: number;
 	passwordResetToken: string;
 	passwordResetExpires: Date;

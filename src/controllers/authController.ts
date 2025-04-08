@@ -18,19 +18,44 @@ import {
 	sendWelcomeEmail,
 	setCookie,
 	toJSON,
+	uploadPictureFile,
 	verifyToken,
 } from '@/common/utils';
 import { catchAsync } from '@/middlewares';
 import { ENVIRONMENT } from '@/common/config';
 import { DateTime } from 'luxon';
-import { Role } from '@/common/constants';
+import { AccountType, Role } from '@/common/constants';
+import { IUser } from '@/common/interfaces';
 
 class AuthController {
 	signUp = catchAsync(async (req: Request, res: Response) => {
-		const { email, password, firstName, lastName, username, role } = req.body;
+		const {
+			email,
+			password,
+			firstName,
+			lastName,
+			username,
+			role,
+			accountType,
+			organizationName,
+			organizationWebsite,
+			organizationDescription,
+		} = req.body;
+		const { file } = req;
 
 		if (!firstName || !lastName || !email || !username || !password) {
 			throw new AppError('Incomplete signup data', 400);
+		}
+		if (!Object.values(AccountType).includes(accountType)) {
+			throw new AppError('Invalid account type', 400);
+		}
+		if (accountType === AccountType.ORGANIZATION) {
+			if (!organizationName) {
+				throw new AppError('Organization name and logo are required', 400);
+			}
+			if (!file) {
+				throw new AppError('Organization logo is required', 400);
+			}
 		}
 
 		const existingUser = await userRepository.findByEmailOrUsername(email, username);
@@ -43,8 +68,7 @@ class AuthController {
 		}
 
 		const hashedPassword = await hashPassword(password);
-
-		const [user] = await userRepository.create({
+		const userPayload: Partial<IUser> = {
 			email,
 			password: hashedPassword,
 			firstName,
@@ -52,12 +76,19 @@ class AuthController {
 			username,
 			ipAddress: req.ip,
 			role: role === 'admin' ? Role.Admin : Role.User,
-		});
+			accountType,
+		};
+
+		if (accountType === AccountType.ORGANIZATION) {
+			if (organizationName) userPayload.organizationName = organizationName;
+			if (organizationWebsite) userPayload.organizationWebsite = organizationWebsite;
+			if (organizationDescription) userPayload.organizationDescription = organizationDescription;
+		}
+
+		const [user] = await userRepository.create(userPayload);
 		if (!user) {
 			throw new AppError('Failed to create user', 500);
 		}
-
-		console.log(user.email)
 
 		// const accessToken = generateAccessToken(user.id);
 		// const refreshToken = generateRefreshToken(user.id);
@@ -66,7 +97,22 @@ class AuthController {
 		// setCookie(req, res, 'refreshToken', refreshToken, parseTokenDuration(ENVIRONMENT.JWT_EXPIRES_IN.REFRESH));
 
 		await sendWelcomeEmail(user.email, user.firstName);
-		return AppResponse(res, 201, toJSON([user]), 'User created successfully');
+		AppResponse(res, 201, toJSON([user]), 'User created successfully');
+
+		setImmediate(async () => {
+			if (accountType === AccountType.ORGANIZATION) {
+				if (file) {
+					const { secureUrl } = await uploadPictureFile({
+						fileName: `organization-logo/${Date.now()}-${file.originalname}`,
+						buffer: file.buffer,
+						mimetype: file.mimetype,
+					});
+					userPayload.organizationLogo = secureUrl;
+				}
+
+				await userRepository.update(user.id, userPayload);
+			}
+		});
 	});
 
 	signIn = catchAsync(async (req: Request, res: Response) => {

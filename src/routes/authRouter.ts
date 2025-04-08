@@ -1,3 +1,4 @@
+import { multerUpload } from '@/common/config';
 import { authController } from '@/controllers';
 import { protect } from '@/middlewares/protect';
 import express from 'express';
@@ -141,7 +142,7 @@ const router = express.Router();
  *                   type: string
  *                   example: Failed to create user
  */
-router.post('/sign-up', authController.signUp);
+router.post('/sign-up', multerUpload.single('organizationLogo'), authController.signUp);
 /**
  * @openapi
  * /auth/sign-in:

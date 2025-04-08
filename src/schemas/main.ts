@@ -1,4 +1,4 @@
-import { QuizDifficulty, Role } from '@/common/constants';
+import { AccountType, QuizDifficulty, Role } from '@/common/constants';
 import { dateFromString } from '@/common/utils';
 import { z } from 'zod';
 
@@ -56,6 +56,21 @@ export const mainSchema = z.object({
 	isDone: z.boolean(),
 	timeSpent: z.string().min(1),
 	role: z.enum([Role.Admin, Role.User, Role.SuperUser]),
+	accountType: z.enum(Object.values(AccountType) as [string, ...string[]]),
+	organizationLogo: z.string().min(7),
+	organizationName: z.string().min(3).trim(),
+	organizationWebsite: z
+		.string()
+		.min(7)
+		.refine((url) => /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/g.test(url), {
+			message: 'Invalid website URL',
+		}),
+	organizationDescription: z.string().min(7),
+	bio: z.string().min(7),
+	careerGoals: z.string().min(7),
+	opportunities: z.string().min(7),
+	strengths: z.string().min(7),
+	assessment: z.string().min(7),
 	rolePlayId: z.string().uuid(),
 	score: z.number().positive(),
 	quizId: z.string().uuid(),

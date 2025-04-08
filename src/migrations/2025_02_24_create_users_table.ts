@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { Role } from '../../src/common/constants';
+import { Role, AccountType } from '../../src/common/constants';
 
 export async function up(knex: Knex): Promise<void> {
 	return knex.schema.createTable('users', (table) => {
@@ -13,6 +13,16 @@ export async function up(knex: Knex): Promise<void> {
 		table.timestamp('otpExpires');
 		table.string('photo');
 		table.enum('role', Object.values(Role)).defaultTo(Role.User);
+		table.enum('accountType', Object.values(AccountType)).defaultTo(AccountType.PERSONAL);
+		table.string('organizationLogo');
+		table.string('organizationName');
+		table.string('organizationWebsite');
+		table.string('organizationDescription');
+		table.string('bio');
+		table.string('careerGoals');
+		table.string('opportunities');
+		table.string('strengths');
+		table.string('assessment');
 		table.integer('passwordResetRetries').defaultTo(0);
 		table.string('passwordResetToken');
 		table.timestamp('passwordResetExpires');

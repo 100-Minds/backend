@@ -1261,7 +1261,7 @@ router.post('/delete-course', courseController.deleteCourse);
  * /course/get-lesson:
  *   get:
  *     summary: Retrieve a specific lesson for a course
- *     description: Retrieves a specific lesson (chapter and associated videos) for a course, identified by the courseId and chapterId. Requires authentication via a valid access token. The courseId and chapterId are provided as query parameters.
+ *     description: Retrieves a specific lesson (chapter, video, role play, and quiz) for a course, identified by the courseId and chapterId. Requires authentication via a valid access token. The courseId and chapterId are provided as query parameters.
  *     tags:
  *       - Course
  *     security:
@@ -1330,7 +1330,7 @@ router.post('/delete-course', courseController.deleteCourse);
  *                             description: The title of the chapter
  *                           description:
  *                             type: string
- *                             example: "This is a description for a resource"
+ *                             example: ""
  *                             description: The description of the chapter
  *                           chapterNumber:
  *                             type: integer
@@ -1339,7 +1339,7 @@ router.post('/delete-course', courseController.deleteCourse);
  *                           chapterResources:
  *                             type: string
  *                             nullable: true
- *                             example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/chapter-resources/1743647463842-Demo_credit.docx"
+ *                             example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/chapter-resources/1743647751033-David Okonkwo Resume .pdf"
  *                             description: The URL of the chapter resources (null if not provided)
  *                           courseId:
  *                             type: string
@@ -1356,6 +1356,56 @@ router.post('/delete-course', courseController.deleteCourse);
  *                             example: "2025-04-03T02:12:23.866Z"
  *                             description: The creation date of the chapter
  *                       video:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             format: uuid
+ *                             example: a8b4fe46-5337-49d7-b155-fc2cd6e2f2fd
+ *                             description: The ID of the video
+ *                           videoURL:
+ *                             type: string
+ *                             example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1743646343875-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
+ *                             description: The URL of the video file
+ *                           isDeleted:
+ *                             type: boolean
+ *                             example: false
+ *                             description: Indicates if the video is deleted
+ *                           duration:
+ *                             type: string
+ *                             example: "00:24"
+ *                             description: The duration of the video in MM:SS format
+ *                           chapterId:
+ *                             type: string
+ *                             format: uuid
+ *                             example: 0088909d-5a6a-4931-acd7-6af3084b7ade
+ *                             description: The ID of the chapter the video belongs to
+ *                           uploadStatus:
+ *                             type: string
+ *                             example: "processing"
+ *                             description: The upload status of the video (e.g., processing, completed, failed)
+ *                           created_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-04-03T02:12:23.881Z"
+ *                             description: The creation date of the video
+ *                       rolePlay:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             format: uuid
+ *                             example: 2c093d7a-bfc6-4e25-af67-7aeb7dae64b9
+ *                             description: The ID of the role play
+ *                           scenario:
+ *                             type: string
+ *                             example: "Intermediate"
+ *                             description: The scenario of the role play
+ *                           scenarioImage:
+ *                             type: string
+ *                             example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/scenario-image/1741394510534-GK5kZ7xXMAEltG9.png"
+ *                             description: The URL of the scenario image
+ *                       quiz:
  *                         type: array
  *                         items:
  *                           type: object
@@ -1363,34 +1413,30 @@ router.post('/delete-course', courseController.deleteCourse);
  *                             id:
  *                               type: string
  *                               format: uuid
- *                               example: a8b4fe46-5337-49d7-b155-fc2cd6e2f2fd
- *                               description: The ID of the video
- *                             videoURL:
+ *                               example: 1998f048-4a44-4740-bdc8-c43ecd1e2e93
+ *                               description: The ID of the quiz question
+ *                             question:
  *                               type: string
- *                               example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1743646343875-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
- *                               description: The URL of the video file
- *                             isDeleted:
- *                               type: boolean
- *                               example: false
- *                               description: Indicates if the video is deleted
- *                             duration:
+ *                               example: "Are you a boy?"
+ *                               description: The question text
+ *                             optionA:
  *                               type: string
- *                               example: "00:24"
- *                               description: The duration of the video in MM:SS format
- *                             chapterId:
+ *                               example: "Yes"
+ *                               description: First option for the question
+ *                             optionB:
  *                               type: string
- *                               format: uuid
- *                               example: 0088909d-5a6a-4931-acd7-6af3084b7ade
- *                               description: The ID of the chapter the video belongs to
- *                             uploadStatus:
+ *                               example: "No"
+ *                               description: Second option for the question
+ *                             optionC:
  *                               type: string
- *                               example: "processing"
- *                               description: The upload status of the video (e.g., processing, completed, failed)
- *                             created_at:
+ *                               nullable: true
+ *                               example: null
+ *                               description: Third option for the question (optional)
+ *                             optionD:
  *                               type: string
- *                               format: date-time
- *                               example: "2025-04-03T02:12:23.881Z"
- *                               description: The creation date of the video
+ *                               nullable: true
+ *                               example: null
+ *                               description: Fourth option for the question (optional)
  *                 message:
  *                   type: string
  *                   example: "Chapters and lessons successfully fetched"
@@ -1404,20 +1450,37 @@ router.post('/delete-course', courseController.deleteCourse);
  *                     chapter:
  *                       id: 0088909d-5a6a-4931-acd7-6af3084b7ade
  *                       title: "Introduction to Emotional Resilience and Well-Being"
- *                       description: "This is a description for a resource"
+ *                       description: ""
  *                       chapterNumber: 1
- *                       chapterResources: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/chapter-resources/1743647463842-Demo_credit.docx"
+ *                       chapterResources: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/chapter-resources/1743647751033-David Okonkwo Resume .pdf"
  *                       courseId: 070200b9-bd6b-4bde-8a45-99a247ed6f98
  *                       isDeleted: false
  *                       created_at: "2025-04-03T02:12:23.866Z"
  *                     video:
- *                       - id: a8b4fe46-5337-49d7-b155-fc2cd6e2f2fd
- *                         videoURL: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1743646343875-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
- *                         isDeleted: false
- *                         duration: "00:24"
- *                         chapterId: 0088909d-5a6a-4931-acd7-6af3084b7ade
- *                         uploadStatus: "processing"
- *                         created_at: "2025-04-03T02:12:23.881Z"
+ *                       id: a8b4fe46-5337-49d7-b155-fc2cd6e2f2fd
+ *                       videoURL: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-videos/1743646343875-WhatsApp Video 2025-03-10 at 23.37.22_66d88e03"
+ *                       isDeleted: false
+ *                       duration: "00:24"
+ *                       chapterId: 0088909d-5a6a-4931-acd7-6af3084b7ade
+ *                       uploadStatus: "processing"
+ *                       created_at: "2025-04-03T02:12:23.881Z"
+ *                     rolePlay:
+ *                       id: 2c093d7a-bfc6-4e25-af67-7aeb7dae64b9
+ *                       scenario: "Intermediate"
+ *                       scenarioImage: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/scenario-image/1741394510534-GK5kZ7xXMAEltG9.png"
+ *                     quiz:
+ *                       - id: 1998f048-4a44-4740-bdc8-c43ecd1e2e93
+ *                         question: "Are you a boy?"
+ *                         optionA: "Yes"
+ *                         optionB: "No"
+ *                         optionC: null
+ *                         optionD: null
+ *                       - id: e0b66b3c-e0c1-40e6-a461-bb6292c1993b
+ *                         question: "Are you a girl?"
+ *                         optionA: "Yes"
+ *                         optionB: "No"
+ *                         optionC: "Maybe"
+ *                         optionD: "Other"
  *                 message: "Chapters and lessons successfully fetched"
  *       400:
  *         description: Bad Request - Validation errors
@@ -1431,8 +1494,7 @@ router.post('/delete-course', courseController.deleteCourse);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: "ChapterId and CourseId are required"
- *                   enum:
+ *                   examples:
  *                     - Please log in again
  *                     - ChapterId and CourseId are required
  *       404:
@@ -1447,8 +1509,7 @@ router.post('/delete-course', courseController.deleteCourse);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: "Course not found"
- *                   enum:
+ *                   examples:
  *                     - Course not found
  *                     - Lessons not found
  */

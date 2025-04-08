@@ -1,4 +1,6 @@
 import { VideoUploadStatus } from '../constants';
+import { IQuiz } from './quiz';
+import { IScenario } from './scenario';
 
 export interface IModule {
 	id: string;
@@ -62,6 +64,7 @@ export interface ILesson {
 		chapterNumber: number;
 		chapterResources: string;
 		videos: ICourseVideo[];
+		//quiz: IQuiz[];
 		created_at?: Date;
 		updated_at?: Date;
 	}[];
@@ -70,5 +73,7 @@ export interface ILesson {
 export interface IChapterLesson {
 	course: Pick<ICourse, 'id' | 'name' | 'courseResources'>;
 	chapter: ICourseChapter;
-	video: ICourseVideo[];
+	quiz: IQuiz[];
+	rolePlay: IScenario;
+	video: ICourseVideo;
 }
