@@ -464,6 +464,21 @@ export class CourseController {
 		return AppResponse(res, 200, toJSON([lessons]), 'Chapters and lessons successfully fetched');
 	});
 
+	getAllCoursesWithLessons = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+
+		const lessons = await courseRepository.getAllCoursesWithLessons();
+		if (!lessons) {
+			throw new AppError('Lessons not found', 404);
+		}
+
+		return AppResponse(res, 200, toJSON(lessons), 'Course lessons successfully fetched');
+	});
+
 	getCourseLessons = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { courseId } = req.query;

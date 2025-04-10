@@ -2288,6 +2288,7 @@ router.post('/video/upload-status', courseController.updateVideoUploadedStatus);
 // //chapter routes
 // router.get('/get-chapter', courseController.getChapter);
 router.get('/get-chapters', courseController.getAllChapters);
+router.get('/get-all-courses', courseController.getAllCoursesWithLessons);
 router.post('/delete-lesson', courseController.deleteLesson);
 
 export { router as courseRouter };
