@@ -10,3 +10,4 @@ export * from './learningJourneyRouter';
 export * from './lastWatchedRouter';
 export * from './statsRouter';
 export * from './quizRouter';
+export * from './favouritesRouter';

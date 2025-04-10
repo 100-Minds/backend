@@ -22,15 +22,13 @@ class LastWatchedRepository {
 		return await knexDb.table('last_watched').where({ userId }).returning('*');
 	}
 
-    findByVideoAndCourse = async (videoId: string, courseId: string): Promise<ILastWatched[]> => {
-		return await knexDb.table('last_watched').where({ videoId, courseId }).returning('*');
+    findByVideoAndCourse = async (userId: string, videoId: string, courseId: string): Promise<ILastWatched[]> => {
+		return await knexDb.table('last_watched').where({ userId, videoId, courseId }).returning('*');
 	}
 
     findByUserIdAndCourse = async (userId: string, courseId: string): Promise<ILastWatched[]> => {
 		return await knexDb.table('last_watched').where({ userId, courseId }).returning('*');
 	}
-
-	
 }
 
 export const lastWatchedRepository = new LastWatchedRepository();

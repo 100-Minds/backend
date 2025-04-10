@@ -9,3 +9,4 @@ export * from './learningJourneyRepository';
 export * from './lastWatchedRepository';
 export * from './statsRepository';
 export * from './quizRepository';
+export * from './favouritesRepository';

@@ -11,3 +11,4 @@ export * from './learningJourneyController';
 export * from './lastWatchedController';
 export * from './statsController';
 export * from './quizController';
+export * from './favouritesController';

@@ -28,6 +28,7 @@ import {
 	lastWatchedRouter,
 	statsRouter,
 	quizRouter,
+	favouritesRouter,
 } from '@/routes';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
@@ -183,6 +184,7 @@ app.use('/api/v1/journey', learningJourneyRouter);
 app.use('/api/v1/last-watched', lastWatchedRouter);
 app.use('/api/v1/statistics', statsRouter);
 app.use('/api/v1/quiz', quizRouter);
+app.use('/api/v1/favourites', favouritesRouter);
 
 // Swagger documentation
 app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
