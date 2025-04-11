@@ -68,7 +68,7 @@ class QuizSoresController {
 
 		const quizScore = await quizScoresRepository.findUserQuizScoreByChapterId(chapterId as string, user.id);
 		if (!quizScore) {
-			throw new AppError('Quiz not found', 404);
+			throw new AppError('Quiz Score not found', 404);
 		}
 
 		return AppResponse(res, 200, toJSON([quizScore]), 'User Quiz score retrieved successfully');
