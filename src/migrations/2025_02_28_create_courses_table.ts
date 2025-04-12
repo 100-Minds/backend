@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+import { CourseStatus } from '../common/constants';
 
 export async function up(knex: Knex): Promise<void> {
 	return knex.schema.createTable('course', (table) => {
@@ -6,9 +7,8 @@ export async function up(knex: Knex): Promise<void> {
 		table.string('name').notNullable();
 		table.string('courseImage').notNullable();
 		table.string('courseResources').nullable();
+		table.enum('status', Object.values(CourseStatus)).defaultTo(CourseStatus.DRAFT);
 		table.uuid('userId').references('id').inTable('users').onDelete('CASCADE').notNullable();
-		table.string('scenarioName').nullable();
-		table.uuid('scenarioId').references('id').inTable('sys_scenario').onDelete('SET NULL').nullable();
 		table.uuid('moduleId').references('id').inTable('course_module').onDelete('SET NULL').notNullable();
 		table.boolean('isDeleted').defaultTo(false);
 		table.timestamps(true, true);

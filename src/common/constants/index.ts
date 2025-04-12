@@ -42,3 +42,8 @@ export enum AccountType {
 	PERSONAL = 'personal',
 	ORGANIZATION = 'organization',
 }
+
+export enum CourseStatus {
+	DRAFT = 'draft',
+	PUBLISHED = 'published',
+}

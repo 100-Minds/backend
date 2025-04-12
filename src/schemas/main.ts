@@ -1,4 +1,4 @@
-import { AccountType, QuizDifficulty, Role } from '@/common/constants';
+import { AccountType, CourseStatus, QuizDifficulty, Role } from '@/common/constants';
 import { dateFromString } from '@/common/utils';
 import { z } from 'zod';
 
@@ -81,6 +81,7 @@ export const mainSchema = z.object({
 	skills: z.array(z.string()),
 	skillId: z.string().uuid(),
 	videoUploadStatus: z.string(),
+	status: z.enum(Object.values(CourseStatus) as [string, ...string[]]),
 	amount: z.number().positive(),
 	question: z.string().trim(),
 	optionA: z.string().trim(),

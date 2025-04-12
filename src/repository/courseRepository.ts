@@ -11,6 +11,7 @@ import {
 	ICourseChapterWithVideoUrl,
 	IScenario,
 	IQuiz,
+	ICourseWithSkillsAndScenario,
 } from '@/common/interfaces';
 import { DateTime } from 'luxon';
 
@@ -68,6 +69,51 @@ class CourseRepository {
 	getCourse = async (id: string): Promise<ICourse | null> => {
 		const result = await knexDb.table('course').where({ id }).select('*');
 		return result.length ? result[0] : null;
+	};
+
+	getCoursee = async (id: string): Promise<ICourseWithSkillsAndScenario | null> => {
+		const course = await knexDb('course').select('*').where({ id, isDeleted: false }).first();
+		if (!course) {
+			return null;
+		}
+
+		const rolePlay = await knexDb('course_roleplay')
+			.select('scenarioId', 'scenarioName')
+			.where({ courseId: course.id, isDeleted: false });
+		if (!rolePlay) {
+			return null;
+		}
+
+		const powerSkill = await knexDb('course_power_skills')
+			.select('powerSkillId', 'powerSkillName')
+			.where({ courseId: course.id });
+		if (!powerSkill) {
+			return null;
+		}
+
+		const coursee: ICourseWithSkillsAndScenario = {
+			course,
+			scenarios: rolePlay.map((role) => ({
+				scenarioId: role.scenarioId,
+				scenarioName: role.scenarioName,
+			})),
+			skills: powerSkill.map((skill) => ({
+				powerSkillId: skill.powerSkillId,
+				powerSkillName: skill.powerSkillName,
+			})),
+		};
+
+		return coursee;
+	};
+
+	getPublishedCourses = async (): Promise<ICourseWithModuleName[] | null> => {
+		return await knexDb
+			.table('course')
+			.select('course.*', 'course_module.name as moduleName')
+			.leftJoin('course_module', 'course.moduleId', 'course_module.id')
+			.where('course.isDeleted', false)
+			.andWhere('course.status', 'published')
+			.orderBy('course.created_at', 'desc');
 	};
 
 	getCourses = async (): Promise<ICourseWithModuleName[] | null> => {

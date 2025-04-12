@@ -12,9 +12,9 @@ import {
 } from '@/common/utils';
 import { catchAsync } from '@/middlewares';
 import { courseRepository, powerSkillRepository, scenarioRepository } from '@/repository';
-import { VideoUploadStatus } from '@/common/constants';
+import { CourseStatus, VideoUploadStatus } from '@/common/constants';
 import { ENVIRONMENT } from '@/common/config';
-import { ICourseChapter, IScenario } from '@/common/interfaces';
+import { ICourseChapter } from '@/common/interfaces';
 
 export class CourseController {
 	createModule = catchAsync(async (req: Request, res: Response) => {
@@ -139,27 +139,21 @@ export class CourseController {
 
 	createCourse = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { name, scenario, moduleId, skills } = req.body;
-		const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+		const { name, moduleId } = req.body;
+		const { file } = req;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
 		}
-		if (!files || !files.courseImage) {
+		if (!file) {
 			throw new AppError('Course image is required', 400);
 		}
 		if (user.role === 'user') {
 			throw new AppError('Only an admin can create a course', 403);
 		}
 
-		const parsedSkills = typeof skills === 'string' ? JSON.parse(skills) : skills;
-		if (!name || !scenario || !moduleId || !skills || !Array.isArray(parsedSkills) || parsedSkills.length === 0) {
-			throw new AppError('Course name, scenario, moduleId and at least one power skill are required', 400);
-		}
-
-		const skillRecords = await powerSkillRepository.findSkillsByIds(parsedSkills);
-		if (skillRecords.length !== parsedSkills.length) {
-			throw new AppError('Invalid power skills provided', 400);
+		if (!name || !moduleId) {
+			throw new AppError('Course name, moduleId and at least one power skill are required', 400);
 		}
 
 		const extinguishCourse = await courseRepository.getCourseByName(user.id, name);
@@ -172,49 +166,20 @@ export class CourseController {
 			throw new AppError('Module not found', 404);
 		}
 
-		let scenarioRecord: IScenario | null = null;
-		if (scenario) {
-			scenarioRecord = await scenarioRepository.findScenarioByName(scenario);
-			if (!scenarioRecord) {
-				throw new AppError('Scenario not found', 400);
-			}
-		}
-
-		const imageFile = files.courseImage[0];
 		const { secureUrl: courseImage } = await uploadPictureFile({
-			fileName: `course-image/${Date.now()}-${imageFile.originalname}`,
-			buffer: imageFile.buffer,
-			mimetype: imageFile.mimetype,
+			fileName: `course-image/${Date.now()}-${file.originalname}`,
+			buffer: file.buffer,
+			mimetype: file.mimetype,
 		});
-
-		let courseResources: string | null = null;
-		if (files.courseResources && files.courseResources.length > 0) {
-			const documentFile = files.courseResources[0];
-			const { secureUrl } = await uploadDocumentFile({
-				fileName: `course-resources/${Date.now()}-${documentFile.originalname}`,
-				buffer: documentFile.buffer,
-				mimetype: documentFile.mimetype,
-			});
-			courseResources = secureUrl;
-		}
 
 		const [course] = await courseRepository.create({
 			name,
 			courseImage,
 			userId: user.id,
 			moduleId,
-			courseResources,
-			scenarioId: scenarioRecord ? scenarioRecord.id : null,
-			scenarioName: scenarioRecord ? scenarioRecord.scenario : null,
 		});
 		if (!course) {
 			throw new AppError('Failed to create course', 500);
-		}
-
-		const formattedSkills = skillRecords.map((skill) => ({ id: skill.id, name: skill.powerskill }));
-		const addSkill = await powerSkillRepository.addPowerSkillsToCourse(course.id, formattedSkills);
-		if (!addSkill) {
-			throw new AppError('Failed to add power skills to course', 500);
 		}
 
 		return AppResponse(res, 201, toJSON([course]), 'Course created successfully');
@@ -239,11 +204,48 @@ export class CourseController {
 		return AppResponse(res, 200, toJSON([course]), 'Course successfully fetched');
 	});
 
+	getAdminCourse = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { courseId } = req.query;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (!courseId) {
+			throw new AppError('Course ID is required', 400);
+		}
+
+		const course = await courseRepository.getCoursee(courseId as string);
+		if (!course) {
+			throw new AppError('Course not found', 404);
+		}
+
+		return AppResponse(res, 200, toJSON([course]), 'Course successfully fetched');
+	});
+
+	getPublishedCourses = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+
+		const courses = await courseRepository.getPublishedCourses();
+		if (!courses || courses.length === 0) {
+			throw new AppError('No Course found', 404);
+		}
+
+		return AppResponse(res, 200, toJSON(courses), 'Published Courses successfully fetched');
+	});
+
 	getCourses = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
+		}
+		if (user.role === 'user') {
+			throw new AppError('Only an admin can view all courses');
 		}
 
 		const courses = await courseRepository.getCourses();
@@ -256,7 +258,7 @@ export class CourseController {
 
 	updateCourse = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { name, courseId, scenario, skills } = req.body;
+		const { name, courseId, moduleId, scenario, skills, status } = req.body;
 		const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
 		if (!user) {
@@ -268,6 +270,9 @@ export class CourseController {
 		if (!courseId) {
 			throw new AppError('Course ID is required', 400);
 		}
+		if (status && !Object.values(CourseStatus).includes(status)) {
+			throw new AppError('Invalid course status provided', 400);
+		}
 
 		const course = await courseRepository.getCourse(courseId);
 		if (!course) {
@@ -277,11 +282,10 @@ export class CourseController {
 			throw new AppError('Course has already been deleted', 400);
 		}
 
-		let scenarioRecord: IScenario | null = null;
-		if (scenario) {
-			scenarioRecord = await scenarioRepository.findScenarioByName(scenario);
-			if (!scenarioRecord) {
-				throw new AppError('Scenario not found', 400);
+		if (moduleId) {
+			const module = await courseRepository.getModule(moduleId);
+			if (!module) {
+				throw new AppError('Module not found', 404);
 			}
 		}
 
@@ -307,29 +311,46 @@ export class CourseController {
 
 		const updatedCourse = await courseRepository.update(courseId, {
 			...(name ? { name } : {}),
-			...(scenarioRecord ? { scenarioId: scenarioRecord.id, scenarioName: scenarioRecord.scenario } : {}),
+			...(moduleId ? { moduleId } : {}),
 			...(courseImageUrl ? { courseImage: courseImageUrl } : {}),
 			...(courseResources ? { courseResources: courseResources } : {}),
+			...(status ? { status } : {}),
 		});
 		if (!updatedCourse) {
 			throw new AppError('Failed to update course', 500);
 		}
 
-		if (skills && Array.isArray(skills) && skills.length > 0) {
-			const skillRecords = await powerSkillRepository.findSkillsByIds(skills);
-			if (skillRecords.length !== skills.length) {
+		const parsedSkills = typeof skills === 'string' ? JSON.parse(skills.replace(/'/g, '"')) : skills;
+		if (parsedSkills && Array.isArray(parsedSkills) && parsedSkills.length > 0) {
+			const skillRecords = await powerSkillRepository.findSkillsByIds(parsedSkills);
+			if (skillRecords.length !== parsedSkills.length) {
 				throw new AppError('Invalid power skills provided', 400);
 			}
 
 			const formattedSkills = skillRecords.map((skill) => ({ id: skill.id, name: skill.powerskill }));
 
-			const removeSkill = await powerSkillRepository.removePowerSkillsFromCourse(courseId);
-			if (!removeSkill) {
-				throw new AppError('Failed to remove power skills from the course', 500);
-			}
+			await powerSkillRepository.removePowerSkillsFromCourse(courseId);
+
 			const addSkill = await powerSkillRepository.addPowerSkillsToCourse(courseId, formattedSkills);
 			if (!addSkill) {
 				throw new AppError('Failed to update power skills for the course', 500);
+			}
+		}
+
+		const parsedScenario = typeof scenario === 'string' ? JSON.parse(scenario.replace(/'/g, '"')) : scenario;
+		if (parsedScenario && Array.isArray(parsedScenario) && parsedScenario.length > 0) {
+			const scenarioRecords = await scenarioRepository.findScenariosByName(parsedScenario);
+			if (scenarioRecords.length !== parsedScenario.length) {
+				throw new AppError('Invalid scenarios provided', 400);
+			}
+
+			const formattedScenarios = scenarioRecords.map((s) => ({ id: s.id, name: s.scenario }));
+
+			await scenarioRepository.removeScenariosFromCourse(courseId);
+
+			const addScenario = await scenarioRepository.addScenarioToCourse(courseId, formattedScenarios);
+			if (!addScenario) {
+				throw new AppError('Failed to update scenarios for the course', 500);
 			}
 		}
 
@@ -463,7 +484,7 @@ export class CourseController {
 
 		return AppResponse(res, 200, toJSON([lessons]), 'Chapters and lessons successfully fetched');
 	});
-	
+
 	getCourseLessons = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { courseId } = req.query;

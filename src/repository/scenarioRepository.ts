@@ -1,5 +1,5 @@
 import { knexDb } from '@/common/config';
-import { IScenario } from '@/common/interfaces';
+import { ICourseScenario, IScenario } from '@/common/interfaces';
 import { DateTime } from 'luxon';
 
 class ScenarioRepository {
@@ -13,6 +13,27 @@ class ScenarioRepository {
 
 	findScenarioByName = async (scenarioName: string): Promise<IScenario | null> => {
 		return knexDb('sys_scenario').where({ scenario: scenarioName }).select('id', 'scenario').first();
+	};
+
+	findScenariosByName = async (scenarios: string[]): Promise<IScenario[]> => {
+		return knexDb('sys_scenario').whereIn('scenario', scenarios).select('id', 'scenario');
+	};
+
+	removeScenariosFromCourse = async (courseId: string): Promise<number> => {
+		return await knexDb('course_roleplay').where({ courseId }).del();
+	};
+
+	addScenarioToCourse = async (
+		courseId: string,
+		scenarios: { id: string; name: string }[]
+	): Promise<ICourseScenario[]> => {
+		const payload = scenarios.map(({ id, name }) => ({
+			courseId,
+			scenarioId: id,
+			scenarioName: name,
+		}));
+
+		return await knexDb.table('course_roleplay').insert(payload).returning('*');
 	};
 
 	update = async (id: string, payload: Partial<IScenario>): Promise<IScenario[]> => {

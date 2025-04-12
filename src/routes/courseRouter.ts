@@ -650,10 +650,311 @@ router.post('/delete-module', courseController.deleteModule);
 router.get('/get-course', courseController.getCourse);
 /**
  * @openapi
+ * /course/get-course:
+ *   get:
+ *     summary: Retrieve a course by ID
+ *     description: Retrieves a specific course based on its ID. Requires authentication via a valid access token. The course ID is provided as a query parameter.
+ *     tags:
+ *       - Course
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         example: "d41f7b6f-1dcb-4b47-90ef-391a79c1168d"
+ *         description: The ID of the course to retrieve
+ *     responses:
+ *       200:
+ *         description: Course retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       course:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             format: uuid
+ *                             example: "d41f7b6f-1dcb-4b47-90ef-391a79c1168d"
+ *                             description: The ID of the course
+ *                           name:
+ *                             type: string
+ *                             example: "Updated course to now"
+ *                             description: The name of the course
+ *                           userId:
+ *                             type: string
+ *                             format: uuid
+ *                             example: "0af8edf7-e4e6-4774-9dac-4ce104ace38c"
+ *                             description: The ID of the user who created the course
+ *                           moduleId:
+ *                             type: string
+ *                             format: uuid
+ *                             example: "20104f7d-a689-4c27-864a-db899e19068a"
+ *                             description: The ID of the module associated with the course
+ *                           isDeleted:
+ *                             type: boolean
+ *                             example: false
+ *                             description: Indicates if the course is deleted
+ *                           created_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-04-12T13:12:42.899Z"
+ *                             description: The creation date of the course
+ *                           updated_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-04-12T14:37:31.489Z"
+ *                             description: The last update date of the course
+ *                           courseResources:
+ *                             type: string
+ *                             nullable: true
+ *                             example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-documents/1744466751732-David Okonkwo Resume .pdf"
+ *                             description: Secure URL of the uploaded course resources (null if not provided)
+ *                           courseImage:
+ *                             type: string
+ *                             nullable: true
+ *                             example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1744465138431-image 13.png"
+ *                             description: Secure URL of the uploaded course image (null if not provided)
+ *                           status:
+ *                             type: string
+ *                             example: "published"
+ *                             description: The status of the course
+ *                       scenarios:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             scenarioId:
+ *                               type: string
+ *                               format: uuid
+ *                               example: "1c7e3c87-b877-4239-a7cd-346d3d42af5c"
+ *                               description: The ID of the scenario
+ *                             scenarioName:
+ *                               type: string
+ *                               example: "Expert"
+ *                               description: The name of the scenario
+ *                         description: List of scenarios associated with the course
+ *                       skills:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             powerSkillId:
+ *                               type: string
+ *                               format: uuid
+ *                               example: "06c351cb-c71a-4c28-86e9-4325a0698829"
+ *                               description: The ID of the power skill
+ *                             powerSkillName:
+ *                               type: string
+ *                               example: "Resilience"
+ *                               description: The name of the power skill
+ *                         description: List of power skills associated with the course
+ *                 message:
+ *                   type: string
+ *                   example: "Course successfully fetched"
+ *               example:
+ *                 status: success
+ *                 data:
+ *                   - course:
+ *                       id: "d41f7b6f-1dcb-4b47-90ef-391a79c1168d"
+ *                       name: "Updated course to now"
+ *                       userId: "0af8edf7-e4e6-4774-9dac-4ce104ace38c"
+ *                       moduleId: "20104f7d-a689-4c27-864a-db899e19068a"
+ *                       isDeleted: false
+ *                       created_at: "2025-04-12T13:12:42.899Z"
+ *                       updated_at: "2025-04-12T14:37:31.489Z"
+ *                       courseResources: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-documents/1744466751732-David Okonkwo Resume .pdf"
+ *                       courseImage: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1744465138431-image 13.png"
+ *                       status: "published"
+ *                     scenarios:
+ *                       - scenarioId: "1c7e3c87-b877-4239-a7cd-346d3d42af5c"
+ *                         scenarioName: "Expert"
+ *                       - scenarioId: "2c093d7a-bfc6-4e25-af67-7aeb7dae64b9"
+ *                         scenarioName: "Intermediate"
+ *                     skills:
+ *                       - powerSkillId: "06c351cb-c71a-4c28-86e9-4325a0698829"
+ *                         powerSkillName: "Resilience"
+ *                       - powerSkillId: "0137c123-17b6-45f6-b081-429c9c731cec"
+ *                         powerSkillName: "Empathy"
+ *                 message: "Course successfully fetched"
+ *       400:
+ *         description: Bad Request - Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: "Course ID is required"
+ *                   enum:
+ *                     - Please log in again
+ *                     - Course ID is required
+ *       404:
+ *         description: Not Found - Course not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: "Course not found"
+ */
+router.get('/get-admin-course', courseController.getAdminCourse);
+/**
+ * @openapi
  * /course/get-courses:
  *   get:
- *     summary: Retrieve all courses
- *     description: Retrieves a list of all courses. Requires authentication via a valid access token.
+ *     summary: Retrieve all published courses
+ *     description: Retrieves a list of all published courses. Requires authentication via a valid access token.
+ *     tags:
+ *       - Course
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Published courses retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                         example: "070200b9-bd6b-4bde-8a45-99a247ed6f98"
+ *                         description: The ID of the course
+ *                       name:
+ *                         type: string
+ *                         example: "DOCUMENT COURSE"
+ *                         description: The name of the course
+ *                       userId:
+ *                         type: string
+ *                         format: uuid
+ *                         example: "0af8edf7-e4e6-4774-9dac-4ce104ace38c"
+ *                         description: The ID of the user who created the course
+ *                       moduleId:
+ *                         type: string
+ *                         format: uuid
+ *                         example: "20104f7d-a689-4c27-864a-db899e19068a"
+ *                         description: The ID of the module associated with the course
+ *                       isDeleted:
+ *                         type: boolean
+ *                         example: false
+ *                         description: Indicates if the course is deleted
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2025-04-03T01:32:44.488Z"
+ *                         description: The creation date of the course
+ *                       courseResources:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-resources/1743643964048-David Okonkwo Resume .pdf"
+ *                         description: Secure URL of the uploaded course resources (null if not provided)
+ *                       courseImage:
+ *                         type: string
+ *                         nullable: true
+ *                         example: ""
+ *                         description: Secure URL of the uploaded course image (empty string if not provided)
+ *                       status:
+ *                         type: string
+ *                         example: "published"
+ *                         description: The status of the course
+ *                       moduleName:
+ *                         type: string
+ *                         example: "Leading Organizations"
+ *                         description: The name of the module associated with the course
+ *                 message:
+ *                   type: string
+ *                   example: "Published Courses successfully fetched"
+ *               example:
+ *                 status: success
+ *                 data:
+ *                   - id: "070200b9-bd6b-4bde-8a45-99a247ed6f98"
+ *                     name: "DOCUMENT COURSE"
+ *                     userId: "0af8edf7-e4e6-4774-9dac-4ce104ace38c"
+ *                     moduleId: "20104f7d-a689-4c27-864a-db899e19068a"
+ *                     isDeleted: false
+ *                     created_at: "2025-04-03T01:32:44.488Z"
+ *                     courseResources: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-resources/1743643964048-David Okonkwo Resume .pdf"
+ *                     courseImage: ""
+ *                     status: "published"
+ *                     moduleName: "Leading Organizations"
+ *                   - id: "0e41b4b3-485b-45eb-881d-46613fc86da2"
+ *                     name: "ibvgctctctctxcrfxfcggc"
+ *                     userId: "0af8edf7-e4e6-4774-9dac-4ce104ace38c"
+ *                     moduleId: "20104f7d-a689-4c27-864a-db899e19068a"
+ *                     isDeleted: false
+ *                     created_at: "2025-03-26T22:31:36.130Z"
+ *                     courseResources: null
+ *                     courseImage: ""
+ *                     status: "published"
+ *                     moduleName: "Leading Organizations"
+ *                 message: "Published Courses successfully fetched"
+ *       400:
+ *         description: Bad Request - Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: "Please log in again"
+ *       404:
+ *         description: Not Found - No published courses available
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: "No Course found"
+ */
+router.get('/get-courses', courseController.getPublishedCourses);
+/**
+ * @openapi
+ * /course/get-admin-courses:
+ *   get:
+ *     summary: Retrieve all courses for admin
+ *     description: Retrieves a list of all courses, including both published and draft statuses. Requires authentication via a valid access token. Only accessible by admins.
  *     tags:
  *       - Course
  *     security:
@@ -677,30 +978,21 @@ router.get('/get-course', courseController.getCourse);
  *                       id:
  *                         type: string
  *                         format: uuid
- *                         example: 9c816faa-7a82-4f5e-94ee-1869e77d33c1
+ *                         example: "d41f7b6f-1dcb-4b47-90ef-391a79c1168d"
  *                         description: The ID of the course
  *                       name:
  *                         type: string
- *                         example: "PS101 Self-Leadership"
+ *                         example: "Updated Course"
  *                         description: The name of the course
  *                       userId:
  *                         type: string
  *                         format: uuid
- *                         example: 0af8edf7-e4e6-4774-9dac-4ce104ace38c
+ *                         example: "0af8edf7-e4e6-4774-9dac-4ce104ace38c"
  *                         description: The ID of the user who created the course
- *                       scenarioName:
- *                         type: string
- *                         example: "Expert"
- *                         description: The name of the associated scenario (null if not provided)
- *                       scenarioId:
- *                         type: string
- *                         format: uuid
- *                         example: 1c7e3c87-b877-4239-a7cd-346d3d42af5c
- *                         description: The ID of the associated scenario (null if not provided)
  *                       moduleId:
  *                         type: string
  *                         format: uuid
- *                         example: 65cf4f6d-01bf-4699-885f-191bb83d19d2
+ *                         example: "65cf4f6d-01bf-4699-885f-191bb83d19d2"
  *                         description: The ID of the module associated with the course
  *                       isDeleted:
  *                         type: boolean
@@ -709,31 +1001,53 @@ router.get('/get-course', courseController.getCourse);
  *                       created_at:
  *                         type: string
  *                         format: date-time
- *                         example: 2025-03-13T22:22:56.990Z
+ *                         example: "2025-04-12T13:12:42.899Z"
  *                         description: The creation date of the course
+ *                       courseResources:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-resources/1743644797667-Demo_credit.docx"
+ *                         description: Secure URL of the uploaded course resources (null if not provided)
+ *                       courseImage:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1744463560100-100minds.jpg"
+ *                         description: Secure URL of the uploaded course image (empty string or URL if provided)
+ *                       status:
+ *                         type: string
+ *                         example: "draft"
+ *                         description: The status of the course (e.g., "draft" or "published")
+ *                       moduleName:
+ *                         type: string
+ *                         example: "Leading Self"
+ *                         description: The name of the module associated with the course
  *                 message:
  *                   type: string
- *                   example: Courses successfully fetched
+ *                   example: "Courses successfully fetched"
  *               example:
  *                 status: success
  *                 data:
- *                   - id: 9c816faa-7a82-4f5e-94ee-1869e77d33c1
- *                     name: "PS101 Self-Leadership"
- *                     userId: 0af8edf7-e4e6-4774-9dac-4ce104ace38c
- *                     scenarioName: "Expert"
- *                     scenarioId: 1c7e3c87-b877-4239-a7cd-346d3d42af5c
- *                     moduleId: 65cf4f6d-01bf-4699-885f-191bb83d19d2
+ *                   - id: "d41f7b6f-1dcb-4b47-90ef-391a79c1168d"
+ *                     name: "Updated Course"
+ *                     userId: "0af8edf7-e4e6-4774-9dac-4ce104ace38c"
+ *                     moduleId: "65cf4f6d-01bf-4699-885f-191bb83d19d2"
  *                     isDeleted: false
- *                     created_at: 2025-03-13T22:22:56.990Z
- *                   - id: abfb6988-c506-47f2-9fec-000ce3b35694
- *                     name: "PS102 Personal Effectiveness and Productivity"
- *                     userId: 0af8edf7-e4e6-4774-9dac-4ce104ace38c
- *                     scenarioName: "Intermediate"
- *                     scenarioId: 2c093d7a-bfc6-4e25-af67-7aeb7dae64b9
- *                     moduleId: 20104f7d-a689-4c27-864a-db899e19068a
+ *                     created_at: "2025-04-12T13:12:42.899Z"
+ *                     courseResources: null
+ *                     courseImage: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1744463560100-100minds.jpg"
+ *                     status: "draft"
+ *                     moduleName: "Leading Self"
+ *                   - id: "f4c46959-ac12-4344-a9d2-b59c7e0e1bef"
+ *                     name: "DOCUMENT without coursee"
+ *                     userId: "0af8edf7-e4e6-4774-9dac-4ce104ace38c"
+ *                     moduleId: "20104f7d-a689-4c27-864a-db899e19068a"
  *                     isDeleted: false
- *                     created_at: 2025-03-17T18:54:08.195Z
- *                 message: Courses successfully fetched
+ *                     created_at: "2025-04-03T01:36:35.025Z"
+ *                     courseResources: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-documents/1743644797667-Demo_credit.docx"
+ *                     courseImage: ""
+ *                     status: "draft"
+ *                     moduleName: "Leading Organizations"
+ *                 message: "Courses successfully fetched"
  *       400:
  *         description: Bad Request - Validation errors
  *         content:
@@ -746,7 +1060,7 @@ router.get('/get-course', courseController.getCourse);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: Please log in again
+ *                   example: "Please log in again"
  *       404:
  *         description: Not Found - No courses available
  *         content:
@@ -759,15 +1073,15 @@ router.get('/get-course', courseController.getCourse);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: No Course found
+ *                   example: "No Course found"
  */
-router.get('/get-courses', courseController.getCourses);
+router.get('/get-admin-courses', courseController.getCourses);
 /**
  * @openapi
  * /course/create-course:
  *   post:
  *     summary: Create a new course
- *     description: Creates a new course with associated module, scenario, power skills, and resources. Only admins can create courses. Requires authentication via a valid access token. The course details are provided in the request body and the request includes a scenario name, an image file, and optionally a resource file.
+ *     description: Creates a new course with associated module and image. Only admins can create courses. Requires authentication via a valid access token. The course details are provided in the request body and the request includes an image file.
  *     tags:
  *       - Course
  *     security:
@@ -781,12 +1095,11 @@ router.get('/get-courses', courseController.getCourses);
  *             required:
  *               - name
  *               - moduleId
- *               - skills
  *               - courseImage
  *             properties:
  *               name:
  *                 type: string
- *                 example: "PS102 Personal Effectiveness and Productivity"
+ *                 example: "Updated Course"
  *                 description: The name of the course
  *               courseImage:
  *                 type: string
@@ -795,22 +1108,8 @@ router.get('/get-courses', courseController.getCourses);
  *               moduleId:
  *                 type: string
  *                 format: uuid
- *                 example: 20104f7d-a689-4c27-864a-db899e19068a
+ *                 example: "65cf4f6d-01bf-4699-885f-191bb83d19d2"
  *                 description: The ID of the module associated with the course
- *               skills:
- *                 type: array
- *                 items:
- *                   type: string
- *                 example: ["Self Awareness", "Adaptability", "Critical Thinking"]
- *                 description: An array of power skill names or IDs to associate with the course
- *               scenario:
- *                 type: string
- *                 example: "Intermediate"
- *                 description: The name of the scenario (optional)
- *               courseResources:
- *                 type: string
- *                 format: binary
- *                 description: Optional resource file for the course (e.g., PDF, DOC)
  *     responses:
  *       201:
  *         description: Course created successfully
@@ -830,34 +1129,25 @@ router.get('/get-courses', courseController.getCourses);
  *                       id:
  *                         type: string
  *                         format: uuid
- *                         example: f4c46959-ac12-4344-a9d2-b59c7e0e1bef
+ *                         example: "d41f7b6f-1dcb-4b47-90ef-391a79c1168d"
  *                         description: The ID of the created course
  *                       name:
  *                         type: string
- *                         example: "DOCUMENT without coursee"
+ *                         example: "Updated Course"
  *                         description: The name of the course
  *                       courseImage:
  *                         type: string
- *                         example: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1743644193011-image 13.png
+ *                         example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1744463560100-100minds.jpg"
  *                         description: Secure URL of the uploaded course image
  *                       userId:
  *                         type: string
  *                         format: uuid
- *                         example: 0af8edf7-e4e6-4774-9dac-4ce104ace38c
+ *                         example: "0af8edf7-e4e6-4774-9dac-4ce104ace38c"
  *                         description: The ID of the user who created the course
- *                       scenarioName:
- *                         type: string
- *                         example: "Intermediate"
- *                         description: The name of the associated scenario (null if not provided)
- *                       scenarioId:
- *                         type: string
- *                         format: uuid
- *                         example: 2c093d7a-bfc6-4e25-af67-7aeb7dae64b9
- *                         description: The ID of the associated scenario (null if not provided)
  *                       moduleId:
  *                         type: string
  *                         format: uuid
- *                         example: 20104f7d-a689-4c27-864a-db899e19068a
+ *                         example: "65cf4f6d-01bf-4699-885f-191bb83d19d2"
  *                         description: The ID of the module associated with the course
  *                       isDeleted:
  *                         type: boolean
@@ -866,30 +1156,27 @@ router.get('/get-courses', courseController.getCourses);
  *                       created_at:
  *                         type: string
  *                         format: date-time
- *                         example: 2025-04-03T01:36:35.025Z
+ *                         example: "2025-04-12T13:12:42.899Z"
  *                         description: The creation date of the course
- *                       courseResources:
+ *                       status:
  *                         type: string
- *                         nullable: true
- *                         example: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-resources/1743644194542-David Okonkwo Resume .pdf
- *                         description: Secure URL of the uploaded course resources (null if not provided)
+ *                         example: "draft"
+ *                         description: The status of the course
  *                 message:
  *                   type: string
- *                   example: Course created successfully
+ *                   example: "Course created successfully"
  *               example:
  *                 status: success
  *                 data:
- *                   - id: f4c46959-ac12-4344-a9d2-b59c7e0e1bef
- *                     name: "DOCUMENT without coursee"
- *                     courseImage: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1743644193011-image 13.png
- *                     userId: 0af8edf7-e4e6-4774-9dac-4ce104ace38c
- *                     scenarioName: "Intermediate"
- *                     scenarioId: 2c093d7a-bfc6-4e25-af67-7aeb7dae64b9
- *                     moduleId: 20104f7d-a689-4c27-864a-db899e19068a
+ *                   - id: "d41f7b6f-1dcb-4b47-90ef-391a79c1168d"
+ *                     name: "Updated Course"
+ *                     courseImage: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1744463560100-100minds.jpg"
+ *                     userId: "0af8edf7-e4e6-4774-9dac-4ce104ace38c"
+ *                     moduleId: "65cf4f6d-01bf-4699-885f-191bb83d19d2"
  *                     isDeleted: false
- *                     created_at: 2025-04-03T01:36:35.025Z
- *                     courseResources: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-resources/1743644194542-David Okonkwo Resume .pdf
- *                 message: Course created successfully
+ *                     created_at: "2025-04-12T13:12:42.899Z"
+ *                     status: "draft"
+ *                 message: "Course created successfully"
  *       400:
  *         description: Bad Request - Validation errors
  *         content:
@@ -902,13 +1189,11 @@ router.get('/get-courses', courseController.getCourses);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: Course name, scenario, moduleId and at least one power skill are required
+ *                   example: "Course name and moduleId are required"
  *                   enum:
  *                     - Please log in again
- *                     - Course name, scenario, moduleId and at least one power skill are required
- *                     - Invalid power skills provided
+ *                     - Course name and moduleId are required
  *                     - Course name exist already
- *                     - Scenario not found
  *                     - Course image is required
  *       403:
  *         description: Forbidden - Insufficient permissions
@@ -922,7 +1207,7 @@ router.get('/get-courses', courseController.getCourses);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: Only an admin can create a course
+ *                   example: "Only an admin can create a course"
  *       404:
  *         description: Not Found - Module not found
  *         content:
@@ -935,9 +1220,9 @@ router.get('/get-courses', courseController.getCourses);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: Module not found
+ *                   example: "Module not found"
  *       500:
- *         description: Internal Server Error - Failed to create course or add skills
+ *         description: Internal Server Error - Failed to create course
  *         content:
  *           application/json:
  *             schema:
@@ -948,25 +1233,15 @@ router.get('/get-courses', courseController.getCourses);
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: Failed to create course
- *                   enum:
- *                     - Failed to create course
- *                     - Failed to add power skills to course
+ *                   example: "Failed to create course"
  */
-router.post(
-	'/create-course',
-	multerUpload.fields([
-		{ name: 'courseImage', maxCount: 1 },
-		{ name: 'courseResources', maxCount: 1 },
-	]),
-	courseController.createCourse
-);
+router.post('/create-course', multerUpload.single('courseImage'), courseController.createCourse);
 /**
  * @openapi
  * /course/update-course:
  *   post:
- *     summary: Update a course
- *     description: Updates an existing course's details (name, scenario, power skills, image file, and/or resources). Only admins who created the course can update it. Requires authentication via a valid access token. The course ID and optional fields to update are provided in the request body.
+ *     summary: Update an existing course
+ *     description: Updates an existing course with new details such as name, module, image, resources, status, skills, and scenarios. Only admins can update courses. Requires authentication via a valid access token. The request includes optional files (course image and resources) and JSON data in the body.
  *     tags:
  *       - Course
  *     security:
@@ -983,30 +1258,41 @@ router.post(
  *               courseId:
  *                 type: string
  *                 format: uuid
- *                 example: f4c46959-ac12-4344-a9d2-b59c7e0e1bef
+ *                 example: "d41f7b6f-1dcb-4b47-90ef-391a79c1168d"
  *                 description: The ID of the course to update
  *               name:
  *                 type: string
- *                 example: "DOCUMENT without coursee"
- *                 description: The new name for the course (optional)
- *               courseImage:
+ *                 example: "Updated course to now"
+ *                 description: The new name of the course (optional)
+ *               moduleId:
  *                 type: string
- *                 format: binary
- *                 description: The new image file for the course (e.g., PNG, JPG) (optional)
+ *                 format: uuid
+ *                 example: "20104f7d-a689-4c27-864a-db899e19068a"
+ *                 description: The ID of the new module to associate with the course (optional)
  *               scenario:
- *                 type: string
- *                 example: "Intermediate"
- *                 description: The new scenario name for the course (optional)
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["Intermediate"]
+ *                 description: Array of scenario names to associate with the course (optional)
  *               skills:
  *                 type: array
  *                 items:
  *                   type: string
- *                 example: ["Self Awareness", "Adaptability", "Critical Thinking"]
- *                 description: An array of new power skill names or IDs to associate with the course (optional)
+ *                 example: ["Self Awareness", "Adaptability"]
+ *                 description: Array of power skill names or IDs to associate with the course (optional)
+ *               status:
+ *                 type: string
+ *                 example: "published"
+ *                 description: The new status of the course (e.g., "draft" or "published") (optional)
+ *               courseImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: New image file for the course (e.g., PNG, JPG) (optional)
  *               courseResources:
  *                 type: string
  *                 format: binary
- *                 description: Optional resource file for the course (e.g., PDF, DOC) (optional)
+ *                 description: New resource file for the course (e.g., PDF, DOC) (optional)
  *     responses:
  *       200:
  *         description: Course updated successfully
@@ -1026,34 +1312,21 @@ router.post(
  *                       id:
  *                         type: string
  *                         format: uuid
- *                         example: f4c46959-ac12-4344-a9d2-b59c7e0e1bef
+ *                         example: "d41f7b6f-1dcb-4b47-90ef-391a79c1168d"
  *                         description: The ID of the updated course
  *                       name:
  *                         type: string
- *                         example: "DOCUMENT without coursee"
- *                         description: The name of the course
- *                       courseImage:
- *                         type: string
- *                         example: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1743644193011-image 13.png
- *                         description: Secure URL of the uploaded course image
+ *                         example: "Updated course to now"
+ *                         description: The name of the updated course
  *                       userId:
  *                         type: string
  *                         format: uuid
- *                         example: 0af8edf7-e4e6-4774-9dac-4ce104ace38c
- *                         description: The ID of the user who created the course
- *                       scenarioName:
- *                         type: string
- *                         example: "Intermediate"
- *                         description: The name of the associated scenario (null if not provided)
- *                       scenarioId:
- *                         type: string
- *                         format: uuid
- *                         example: 2c093d7a-bfc6-4e25-af67-7aeb7dae64b9
- *                         description: The ID of the associated scenario (null if not provided)
+ *                         example: "0af8edf7-e4e6-4774-9dac-4ce104ace38c"
+ *                         description: The ID of the user who updated the course
  *                       moduleId:
  *                         type: string
  *                         format: uuid
- *                         example: 20104f7d-a689-4c27-864a-db899e19068a
+ *                         example: "20104f7d-a689-4c27-864a-db899e19068a"
  *                         description: The ID of the module associated with the course
  *                       isDeleted:
  *                         type: boolean
@@ -1062,30 +1335,38 @@ router.post(
  *                       created_at:
  *                         type: string
  *                         format: date-time
- *                         example: 2025-04-03T01:36:35.025Z
+ *                         example: "2025-04-12T13:12:42.899Z"
  *                         description: The creation date of the course
  *                       courseResources:
  *                         type: string
  *                         nullable: true
- *                         example: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-documents/1743644797667-Demo_credit.docx
+ *                         example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-documents/1744465323621-David Okonkwo Resume .pdf"
  *                         description: Secure URL of the uploaded course resources (null if not provided)
+ *                       courseImage:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1744465138431-image 13.png"
+ *                         description: Secure URL of the uploaded course image (null if not provided)
+ *                       status:
+ *                         type: string
+ *                         example: "published"
+ *                         description: The status of the updated course
  *                 message:
  *                   type: string
- *                   example: Course updated successfully
+ *                   example: "Course updated successfully"
  *               example:
  *                 status: success
  *                 data:
- *                   - id: f4c46959-ac12-4344-a9d2-b59c7e0e1bef
- *                     name: "DOCUMENT without coursee"
- *                     courseImage: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1743644193011-image 13.png
- *                     userId: 0af8edf7-e4e6-4774-9dac-4ce104ace38c
- *                     scenarioName: "Intermediate"
- *                     scenarioId: 2c093d7a-bfc6-4e25-af67-7aeb7dae64b9
- *                     moduleId: 20104f7d-a689-4c27-864a-db899e19068a
+ *                   - id: "d41f7b6f-1dcb-4b47-90ef-391a79c1168d"
+ *                     name: "Updated course to now"
+ *                     userId: "0af8edf7-e4e6-4774-9dac-4ce104ace38c"
+ *                     moduleId: "20104f7d-a689-4c27-864a-db899e19068a"
  *                     isDeleted: false
- *                     created_at: 2025-04-03T01:36:35.025Z
- *                     courseResources: https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-documents/1743644797667-Demo_credit.docx
- *                 message: Course updated successfully
+ *                     created_at: "2025-04-12T13:12:42.899Z"
+ *                     courseResources: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-documents/1744465323621-David Okonkwo Resume .pdf"
+ *                     courseImage: "https://pub-b3c115b60ec04ceaae8ac7360bf42530.r2.dev/course-image/1744465138431-image 13.png"
+ *                     status: "published"
+ *                 message: "Course updated successfully"
  *       400:
  *         description: Bad Request - Validation errors
  *         content:
@@ -1098,13 +1379,17 @@ router.post(
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: Course ID is required
+ *                   example: "Course ID is required"
  *                   enum:
  *                     - Please log in again
+ *                     - Only an admin can update a course
  *                     - Course ID is required
+ *                     - Invalid course status provided
+ *                     - Course not found
  *                     - Course has already been deleted
- *                     - Scenario not found
+ *                     - Module not found
  *                     - Invalid power skills provided
+ *                     - Invalid scenarios provided
  *       403:
  *         description: Forbidden - Insufficient permissions
  *         content:
@@ -1117,12 +1402,9 @@ router.post(
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: Only an admin can update a course
- *                   enum:
- *                     - Only an admin can update a course
- *                     - You are not authorized to update this course
+ *                   example: "Only an admin can update a course"
  *       404:
- *         description: Not Found - Course not found
+ *         description: Not Found - Course or module not found
  *         content:
  *           application/json:
  *             schema:
@@ -1133,9 +1415,9 @@ router.post(
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: Course not found
+ *                   example: "Course not found"
  *       500:
- *         description: Internal Server Error - Failed to update course or skills
+ *         description: Internal Server Error - Failed to update course or related data
  *         content:
  *           application/json:
  *             schema:
@@ -1146,11 +1428,13 @@ router.post(
  *                   example: error
  *                 message:
  *                   type: string
- *                   example: Failed to remove power skills from the course
+ *                   example: "Failed to update course"
  *                   enum:
+ *                     - Failed to update course
  *                     - Failed to remove power skills from the course
  *                     - Failed to update power skills for the course
- *                     - Failed to update course
+ *                     - Failed to remove scenarios from the course
+ *                     - Failed to update scenarios for the course
  */
 router.post(
 	'/update-course',

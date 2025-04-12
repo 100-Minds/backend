@@ -56,6 +56,18 @@ export interface ICourseChapterWithVideoUrl extends ICourseChapter {
 	videoUrl: string;
 }
 
+export interface ICourseWithSkillsAndScenario {
+	course: ICourse;
+	scenarios: {
+		scenarioId: string;
+		scenarioName: string;
+	}[];
+	skills: {
+		powerSkillId: string;
+		powerSkillName: string;
+	}[];
+}
+
 export interface ILesson {
 	course: ICourse;
 	chapters: {

@@ -61,7 +61,7 @@ class FavouritesController {
 
 		if (!user) throw new AppError('Please log in again', 401);
 		if (!chapterId || !courseId || !favouriteId) {
-			throw new AppError('Chapter ID, Course, and Favourite ID are required', 400);
+			throw new AppError('Chapter ID, Course ID, and Favourite ID are required', 400);
 		}
 
 		const chapter = await courseRepository.getChapter(chapterId);
