@@ -338,11 +338,8 @@ export class CourseController {
 		}
 
 		const parsedScenario = typeof scenario === 'string' ? JSON.parse(scenario.replace(/'/g, '"')) : scenario;
-		console.log(parsedScenario);
-		console.log(typeof scenario);
 		if (parsedScenario && Array.isArray(parsedScenario) && parsedScenario.length > 0) {
 			const scenarioRecords = await scenarioRepository.findScenariosByName(parsedScenario);
-			console.log(scenarioRecords);
 			if (scenarioRecords.length !== parsedScenario.length) {
 				throw new AppError('Invalid scenarios provided', 400);
 			}
