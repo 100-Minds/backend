@@ -78,7 +78,7 @@ export const mainSchema = z.object({
 	videoLength: z.string(),
 	key: z.string(),
 	skill: z.string(),
-	skills: z.array(z.string()),
+	skills: z.string(),
 	skillId: z.string().uuid(),
 	videoUploadStatus: z.string(),
 	status: z.enum(Object.values(CourseStatus) as [string, ...string[]]),
