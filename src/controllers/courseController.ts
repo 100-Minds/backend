@@ -597,7 +597,9 @@ export class CourseController {
 		let signedUrl: string | undefined, key: string | undefined;
 		if (fileName && fileType && fileSize && videoLength) {
 			const video = await courseRepository.getVideoByChapterId(chapter.id);
-			console.log('video', video)
+			console.log(chapter.id);
+			console.log(chapterId);
+			console.log('video', video);
 			if (!video) {
 				throw new AppError('Video not found', 404);
 			}
