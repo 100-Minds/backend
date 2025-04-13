@@ -602,11 +602,13 @@ export class CourseController {
 			}
 
 			const result = await deleteObjectFromR2(video.videoURL);
+			console.log('result', result);
 			if (result === false) {
 				throw new AppError('Invalid file URL. Could not extract object key.');
 			}
 
 			({ signedUrl, key } = await generatePresignedUrl(fileName, fileType, fileSize));
+			console.log(signedUrl, key);
 
 			const videoUpdates = {
 				videoURL: `${ENVIRONMENT.R2.PUBLIC_URL}/${key}`,
