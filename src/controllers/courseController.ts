@@ -672,7 +672,7 @@ export class CourseController {
 		return AppResponse(res, 200, null, 'Lesson deleted successfully.');
 	});
 
-	updateVideoUploadedStatus = catchAsync(async (req: Request, res: Response) => {
+	createVideoUploadedStatus = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { chapterId, videoUploadStatus } = req.body;
 
@@ -716,6 +716,51 @@ export class CourseController {
 
 		videoUploadStatus === 'failed' &&
 			(await Promise.all([courseRepository.hardDeleteChapter(chapter.id), courseRepository.hardDeleteVideo(video.id)]));
+
+		return AppResponse(res, 200, null, 'Video upload confirmed');
+	});
+
+	updateVideoUploadedStatus = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { chapterId, videoUploadStatus } = req.body;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (user.role === 'user') {
+			throw new AppError('Only an admin can update an uploaded video', 403);
+		}
+		if (!chapterId) {
+			throw new AppError('Chapter ID is required', 400);
+		}
+
+		const video = await courseRepository.getVideoByChapterId(chapterId);
+		if (!video) {
+			throw new AppError('Video not found', 404);
+		}
+		if (video.uploadStatus === VideoUploadStatus.COMPLETED) {
+			throw new AppError('Video has already been uploaded', 400);
+		}
+		if (video.uploadStatus === VideoUploadStatus.FAILED) {
+			throw new AppError('Video upload failed', 500);
+		}
+
+		const chapter = await courseRepository.getChapter(video.chapterId);
+		if (!chapter) {
+			throw new AppError('Chapter not found', 404);
+		}
+
+		const course = await courseRepository.getCourse(chapter.courseId);
+		if (!course) {
+			throw new AppError('Course not found', 404);
+		}
+
+		await courseRepository.updateVideo(video.id, {
+			uploadStatus: videoUploadStatus === 'completed' ? VideoUploadStatus.COMPLETED : VideoUploadStatus.FAILED,
+		});
+		videoUploadStatus === 'completed'
+			? await videoUploadSuccessfulEmail(user.email, chapter.chapterNumber, course.name)
+			: await videoUploadFailedEmail(user.email, chapter.chapterNumber, course.name);
 
 		return AppResponse(res, 200, null, 'Video upload confirmed');
 	});
