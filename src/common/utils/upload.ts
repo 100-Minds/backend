@@ -156,14 +156,12 @@ export const deleteObjectFromR2 = async (fileUrl: string) => {
 			return false;
 		}
 
-		console.log('object key', objectKey);
 		const command = new DeleteObjectCommand({
 			Bucket: ENVIRONMENT.R2.BUCKET_NAME,
 			Key: objectKey,
 		});
 
-		const check = await r2.send(command);
-		console.log('r2 delete', check);
+		await r2.send(command);
 		console.log(`Deleted: ${objectKey}`);
 	} catch (error) {
 		console.error('Error deleting object:', error);

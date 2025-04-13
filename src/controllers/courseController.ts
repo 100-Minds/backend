@@ -597,21 +597,16 @@ export class CourseController {
 		let signedUrl: string | undefined, key: string | undefined;
 		if (fileName && fileType && fileSize && videoLength) {
 			const video = await courseRepository.getVideoByChapterId(chapter.id);
-			console.log(chapter.id);
-			console.log(chapterId);
-			console.log('video', video);
 			if (!video) {
 				throw new AppError('Video not found', 404);
 			}
 
 			const result = await deleteObjectFromR2(video.videoURL);
-			console.log('result', result);
 			if (result === false) {
 				throw new AppError('Invalid file URL. Could not extract object key.');
 			}
 
 			({ signedUrl, key } = await generatePresignedUrl(fileName, fileType, fileSize));
-			console.log(signedUrl, key);
 
 			const videoUpdates = {
 				videoURL: `${ENVIRONMENT.R2.PUBLIC_URL}/${key}`,
