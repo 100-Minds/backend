@@ -236,7 +236,7 @@ class CourseRepository {
 	getCourseLessons = async (courseId: string): Promise<ILesson | null> => {
 		const course = await knexDb
 			.table('course')
-			.select('id', 'name', 'scenarioName', 'scenarioId', 'moduleId', 'courseResources', 'isDeleted', 'created_at')
+			.select('id', 'name', 'moduleId', 'courseResources', 'isDeleted', 'created_at')
 			.where({ id: courseId, isDeleted: false })
 			.first();
 		if (!course) {
