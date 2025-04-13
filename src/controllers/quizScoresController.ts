@@ -3,7 +3,7 @@ import { AppResponse, AppError, toJSON } from '@/common/utils';
 import { courseRepository, quizRepository, quizScoresRepository } from '@/repository';
 import { catchAsync } from '@/middlewares';
 
-class QuizSoresController {
+class QuizScoresController {
 	submitChapterQuiz = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { chapterId, courseId, answers } = req.body;
@@ -97,4 +97,4 @@ class QuizSoresController {
 	});
 }
 
-export const quizScoresController = new QuizSoresController();
+export const quizScoresController = new QuizScoresController();

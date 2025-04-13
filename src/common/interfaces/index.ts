@@ -16,3 +16,4 @@ export * from './learningJourney';
 export * from './lastWatched';
 export * from './statistics';
 export * from './quiz';
+export * from './assessment';

@@ -10,3 +10,5 @@ export * from './lastWatchedRepository';
 export * from './statsRepository';
 export * from './quizRepository';
 export * from './favouritesRepository';
+export * from './assessmentRepository';
+export * from './assessmentScoresRepository';

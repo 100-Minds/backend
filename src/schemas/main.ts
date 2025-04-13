@@ -70,6 +70,7 @@ export const mainSchema = z.object({
 	rolePlayId: z.string().uuid(),
 	score: z.number().positive(),
 	quizId: z.string().uuid(),
+	assessmentId: z.string().uuid(),
 	quizScoreId: z.string().uuid(),
 	difficulty: z.enum(Object.values(QuizDifficulty) as [string, ...string[]]),
 	fileName: z.string(),
@@ -93,6 +94,14 @@ export const mainSchema = z.object({
 		.array(
 			z.object({
 				quizId: z.string().uuid(),
+				selectedOption: z.enum(['optionA', 'optionB', 'optionC', 'optionD']),
+			})
+		)
+		.min(1, 'At least one answer is required'),
+	assessmentAnswers: z
+		.array(
+			z.object({
+				assessmentId: z.string().uuid(),
 				selectedOption: z.enum(['optionA', 'optionB', 'optionC', 'optionD']),
 			})
 		)

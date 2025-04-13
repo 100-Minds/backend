@@ -11,3 +11,5 @@ export * from './lastWatchedRouter';
 export * from './statsRouter';
 export * from './quizRouter';
 export * from './favouritesRouter';
+export * from './assessmentRouter';
+export * from './assessmentScoresRouter';
