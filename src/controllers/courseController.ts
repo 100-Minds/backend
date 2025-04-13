@@ -674,7 +674,7 @@ export class CourseController {
 
 	updateVideoUploadedStatus = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { key, videoUploadStatus } = req.body;
+		const { chapterId, videoUploadStatus } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -682,11 +682,11 @@ export class CourseController {
 		if (user.role === 'user') {
 			throw new AppError('Only an admin can update an uploaded video', 403);
 		}
-		if (!key) {
-			throw new AppError('Video key is required', 400);
+		if (!chapterId) {
+			throw new AppError('Chapter ID is required', 400);
 		}
 
-		const video = await courseRepository.getVideoByKey(`${ENVIRONMENT.R2.PUBLIC_URL}/${key}`);
+		const video = await courseRepository.getVideoByChapterId(chapterId);
 		if (!video) {
 			throw new AppError('Video not found', 404);
 		}
