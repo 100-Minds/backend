@@ -2568,7 +2568,7 @@ router.post('/update-lesson', multerUpload.single('chapterResources'), courseCon
  *                   example: "Video upload failed"
  */
 router.post('/video/upload-status', courseController.createVideoUploadedStatus);
-router.post('/video/upload-status-update', courseController.createVideoUploadedStatus);
+router.post('/video/upload-status-update', courseController.updateVideoUploadedStatus);
 
 // //chapter routes
 // router.get('/get-chapter', courseController.getChapter);
