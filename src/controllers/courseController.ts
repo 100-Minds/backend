@@ -376,10 +376,6 @@ export class CourseController {
 			throw new AppError('courseId not found', 404);
 		}
 
-		if (course.userId !== user.id) {
-			throw new AppError('You are not authorized to delete this course', 403);
-		}
-
 		if (course.isDeleted) {
 			throw new AppError('Course has already been deleted', 400);
 		}
@@ -414,9 +410,6 @@ export class CourseController {
 			throw new AppError('Course not found', 404);
 		}
 
-		if (course.userId !== user.id) {
-			throw new AppError('You are not authorized to create a lesson for this course', 403);
-		}
 		if (course.isDeleted) {
 			throw new AppError('Course has already been deleted', 400);
 		}
