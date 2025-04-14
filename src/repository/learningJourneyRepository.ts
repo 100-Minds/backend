@@ -164,7 +164,7 @@ class LearningJourneyRepository {
 	};
 
 	getAllUserLearningJourney = async (userId: string) => {
-		const activeCourses = await knexDb('courses')
+		const activeCourses = await knexDb('course')
 			.where({
 				isDeleted: false,
 				status: 'published',
