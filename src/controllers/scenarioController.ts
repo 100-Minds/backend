@@ -91,9 +91,6 @@ export class ScenarioController {
 		if (!scenarioId) {
 			throw new AppError('Scenario ID is required', 400);
 		}
-		if (!scenario) {
-			throw new AppError('Scenario is required', 400);
-		}
 
 		const extinguishScenario = await scenarioRepository.findById(scenarioId);
 		if (!extinguishScenario) {

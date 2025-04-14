@@ -205,7 +205,7 @@ const isValidFileNameAwsUpload = (fileName: string): boolean => {
 };
 
 const isValidPhotoNameAwsUpload = (fileName: string) => {
-	const regex = /^([a-zA-Z0-9\s\-+_!@#$%^&*(),./]+)(?:\.(jpg|png|jpeg))$/i;
+	const regex = /^([a-zA-Z0-9\s\-+_!@#$%^&*(),./]+)(?:\.(jpg|png|jpeg|svg))$/i;
 	return regex.test(fileName);
 };
 
