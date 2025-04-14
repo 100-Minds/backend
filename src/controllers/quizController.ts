@@ -75,6 +75,25 @@ class QuizController {
 		return AppResponse(res, 201, toJSON([quiz]), 'Quiz created successfully');
 	});
 
+	findById = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { quizId } = req.query;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (!quizId) {
+			throw new AppError('Quiz ID is required', 400);
+		}
+
+		const quiz = await quizRepository.findById(quizId as string);
+		if (!quiz) {
+			throw new AppError('Quiz not found', 404);
+		}
+
+		return AppResponse(res, 200, toJSON([quiz]), 'Quiz retrieved successfully');
+	});
+
 	findQuizByChapterId = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { chapterId } = req.query;
@@ -124,10 +143,7 @@ class QuizController {
 		if (updatedOptions.optionC) availableOptions.push('optionC');
 		if (updatedOptions.optionD) availableOptions.push('optionD');
 		if (!availableOptions.includes(isCorrect)) {
-			throw new AppError(
-				`Correct answer must be one of the provided options: ${availableOptions.join(', ')}`,
-				400
-			);
+			throw new AppError(`Correct answer must be one of the provided options: ${availableOptions.join(', ')}`, 400);
 		}
 
 		const updatedQuizData: IQuiz = {
@@ -142,7 +158,7 @@ class QuizController {
 		if (Object.keys(updatedQuizData).length === 0) {
 			throw new AppError('No fields to update', 400);
 		}
-		
+
 		const [updatedQuiz] = await quizRepository.update(quizId, updatedQuizData);
 		if (!updatedQuiz) {
 			throw new AppError('Failed to update quiz', 500);

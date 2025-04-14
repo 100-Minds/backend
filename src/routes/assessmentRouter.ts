@@ -339,6 +339,132 @@ router.post('/create', assessmentController.createAssessment);
 router.get('/course', assessmentController.findAssessmentByCourseId);
 /**
  * @openapi
+ * /assessment/get-assessment:
+ *   get:
+ *     summary: Find assessment by ID
+ *     description: Retrieves a specific assessment by its ID. Requires authentication via a valid access token. The assessment ID must be provided as a query parameter.
+ *     tags:
+ *       - Assessment
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: assessmentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         example: 1ca52156-d8e4-4a16-a714-612e9bab997b
+ *         description: The ID of the assessment to retrieve
+ *     responses:
+ *       200:
+ *         description: Assessment retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                         example: 1ca52156-d8e4-4a16-a714-612e9bab997b
+ *                         description: The ID of the assessment
+ *                       question:
+ *                         type: string
+ *                         example: Assessment question
+ *                         description: The question for the assessment
+ *                       optionA:
+ *                         type: string
+ *                         example: Yes nahh
+ *                         description: First option for the assessment
+ *                       optionB:
+ *                         type: string
+ *                         example: No nahh
+ *                         description: Second option for the assessment
+ *                       optionC:
+ *                         type: string
+ *                         example: Maybe not
+ *                         description: Third option for the assessment (if provided)
+ *                       optionD:
+ *                         type: string
+ *                         example: hsdvyb yes
+ *                         description: Fourth option for the assessment (if provided)
+ *                       isCorrect:
+ *                         type: string
+ *                         example: optionA
+ *                         enum:
+ *                           - optionA
+ *                           - optionB
+ *                           - optionC
+ *                           - optionD
+ *                         description: The key of the correct answer
+ *                       courseId:
+ *                         type: string
+ *                         format: uuid
+ *                         example: 070200b9-bd6b-4bde-8a45-99a247ed6f98
+ *                         description: The ID of the course the assessment belongs to
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                         example: 2025-04-13T22:21:34.030Z
+ *                         description: The creation date of the assessment
+ *                 message:
+ *                   type: string
+ *                   example: Assessment retrieved successfully
+ *               example:
+ *                 status: success
+ *                 data:
+ *                   - id: 1ca52156-d8e4-4a16-a714-612e9bab997b
+ *                     question: Assessment question
+ *                     optionA: Yes nahh
+ *                     optionB: No nahh
+ *                     optionC: Maybe not
+ *                     optionD: hsdvyb yes
+ *                     isCorrect: optionA
+ *                     courseId: 070200b9-bd6b-4bde-8a45-99a247ed6f98
+ *                     created_at: 2025-04-13T22:21:34.030Z
+ *                 message: Assessment retrieved successfully
+ *       400:
+ *         description: Bad Request - Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Assessment ID is required
+ *                   enum:
+ *                     - Please log in again
+ *                     - Assessment ID is required
+ *       404:
+ *         description: Not Found - Assessment not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Assessment not found
+ */
+router.get('/get-assessment', assessmentController.findById);
+/**
+ * @openapi
  * /assessment/update:
  *   post:
  *     summary: Update an existing assessment

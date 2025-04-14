@@ -216,6 +216,138 @@ router.use(protect);
 router.post('/create', quizController.createQuiz);
 /**
  * @openapi
+ * /quiz/get-quiz:
+ *   get:
+ *     summary: Find quiz by ID
+ *     description: Retrieves a specific quiz by its ID. Requires authentication via a valid access token. The quiz ID must be provided as a query parameter.
+ *     tags:
+ *       - Quiz
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: quizId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         example: 1998f048-4a44-4740-bdc8-c43ecd1e2e93
+ *         description: The ID of the quiz to retrieve
+ *     responses:
+ *       200:
+ *         description: Quiz retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                         example: 1998f048-4a44-4740-bdc8-c43ecd1e2e93
+ *                         description: The ID of the quiz
+ *                       question:
+ *                         type: string
+ *                         example: Are you a boy?
+ *                         description: The question for the quiz
+ *                       optionA:
+ *                         type: string
+ *                         example: Yes
+ *                         description: First option for the quiz
+ *                       optionB:
+ *                         type: string
+ *                         example: No
+ *                         description: Second option for the quiz
+ *                       optionC:
+ *                         type: [string, null]
+ *                         example: null
+ *                         description: Third option for the quiz (optional, can be null)
+ *                       optionD:
+ *                         type: [string, null]
+ *                         example: null
+ *                         description: Fourth option for the quiz (optional, can be null)
+ *                       isCorrect:
+ *                         type: string
+ *                         example: optionB
+ *                         enum:
+ *                           - optionA
+ *                           - optionB
+ *                           - optionC
+ *                           - optionD
+ *                         description: The key of the correct answer
+ *                       courseId:
+ *                         type: string
+ *                         format: uuid
+ *                         example: 070200b9-bd6b-4bde-8a45-99a247ed6f98
+ *                         description: The ID of the course the quiz belongs to
+ *                       chapterId:
+ *                         type: string
+ *                         format: uuid
+ *                         example: 0088909d-5a6a-4931-acd7-6af3084b7ade
+ *                         description: The ID of the chapter the quiz belongs to
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                         example: 2025-04-06T10:51:34.306Z
+ *                         description: The creation date of the quiz
+ *                 message:
+ *                   type: string
+ *                   example: Quiz retrieved successfully
+ *               example:
+ *                 status: success
+ *                 data:
+ *                   - id: 1998f048-4a44-4740-bdc8-c43ecd1e2e93
+ *                     question: Are you a boy?
+ *                     optionA: Yes
+ *                     optionB: No
+ *                     optionC: null
+ *                     optionD: null
+ *                     isCorrect: optionB
+ *                     courseId: 070200b9-bd6b-4bde-8a45-99a247ed6f98
+ *                     chapterId: 0088909d-5a6a-4931-acd7-6af3084b7ade
+ *                     created_at: 2025-04-06T10:51:34.306Z
+ *                 message: Quiz retrieved successfully
+ *       400:
+ *         description: Bad Request - Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Quiz ID is required
+ *                   enum:
+ *                     - Please log in again
+ *                     - Quiz ID is required
+ *       404:
+ *         description: Not Found - Quiz not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Quiz not found
+ */
+router.get('/get-quiz', quizController.findById);
+/**
+ * @openapi
  * /quiz/chapter:
  *   get:
  *     summary: Retrieve a quiz by chapter ID

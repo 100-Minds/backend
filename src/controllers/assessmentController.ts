@@ -68,6 +68,25 @@ class AssessmentController {
 		return AppResponse(res, 201, toJSON([assessment]), 'Assessment created successfully');
 	});
 
+	findById = catchAsync(async (req: Request, res: Response) => {
+		const { user } = req;
+		const { assessmentId } = req.query;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (!assessmentId) {
+			throw new AppError('Assessment ID is required', 400);
+		}
+
+		const assessment = await assessmentRepository.findById(assessmentId as string);
+		if (!assessment) {
+			throw new AppError('Assessment not found', 404);
+		}
+
+		return AppResponse(res, 200, toJSON([assessment]), 'Assessment retrieved successfully');
+	})
+
 	findAssessmentByCourseId = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { courseId } = req.query;
