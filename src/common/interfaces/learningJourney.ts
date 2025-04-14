@@ -34,8 +34,6 @@ export interface ILearningJourney {
 	courseId: string;
 	courseName: string;
 	chapterId: string;
-	scenarioId: string;
-	scenarioName: string;
 	created_at: Date;
 	updated_at: Date;
 }
@@ -48,8 +46,6 @@ export interface IUserLearningJourney {
 	courseId: string;
 	courseName: string;
 	chapterId: string;
-	scenarioId: string;
-	scenarioName: string;
 	status: LearningStatus;
 	created_at?: Date;
 	updated_at?: Date;

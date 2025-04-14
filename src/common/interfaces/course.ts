@@ -16,8 +16,6 @@ export interface ICourse {
 	courseImage: string;
 	courseResources: string | null;
 	moduleId: string;
-	scenarioName: string | null;
-	scenarioId: string | null;
 	isDeleted: boolean;
 	created_at?: Date;
 	updated_at?: Date;
