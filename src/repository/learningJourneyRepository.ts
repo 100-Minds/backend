@@ -51,7 +51,7 @@ class LearningJourneyRepository {
 
 	getAllLearningJourney = async () => {
 		const learningJourneyRecords = await knexDb('learning_journey')
-			.select('moduleId', 'moduleName', 'courseId', 'courseName', 'scenarioId', 'scenarioName' , 'isRequired')
+			.select('moduleId', 'moduleName', 'courseId', 'courseName', 'scenarioId', 'scenarioName', 'isRequired')
 			.orderBy('created_at', 'asc');
 
 		const structuredLearning: Record<string, StructuredModule> = {};
@@ -164,6 +164,15 @@ class LearningJourneyRepository {
 	};
 
 	getAllUserLearningJourney = async (userId: string) => {
+		const activeCourses = await knexDb('courses')
+			.where({
+				isDeleted: false,
+				status: 'published',
+			})
+			.select('id as courseId');
+
+		const activeCourseIds = new Set(activeCourses.map((course) => course.courseId));
+
 		const learningJourney = await knexDb('learning_journey').select(
 			'moduleId',
 			'moduleName',
@@ -173,8 +182,11 @@ class LearningJourneyRepository {
 			'scenarioName'
 		);
 
-		// Fetch chapters for each course in the learning journey
-		const courseIds = [...new Set(learningJourney.map((record) => record.courseId))];
+		// Filter learning journey to include only active courses
+		const filteredLearningJourney = learningJourney.filter((record) => activeCourseIds.has(record.courseId));
+
+		// Continue with your existing logic, but using the filtered journey
+		const courseIds = [...new Set(filteredLearningJourney.map((record) => record.courseId))];
 		const chapters = await knexDb('course_chapters')
 			.whereIn('courseId', courseIds)
 			.select('courseId', 'id as chapterId', 'chapterNumber');
@@ -182,12 +194,12 @@ class LearningJourneyRepository {
 
 		const completedChaptersSet = new Set(userCompletedChapters.map((c) => c.chapterId));
 
+		// Rest of your code remains the same, but use filteredLearningJourney instead of learningJourney
 		const courseChaptersMap: Record<string, Map<string, { chapterId: string; chapterNumber: number }>> = {};
 		for (const chapter of chapters) {
 			if (!courseChaptersMap[chapter.courseId]) {
 				courseChaptersMap[chapter.courseId] = new Map();
 			}
-			// Add only unique chapters //i had duplicates (each chapter displayed twice)
 			courseChaptersMap[chapter.courseId].set(chapter.chapterId, {
 				chapterId: chapter.chapterId,
 				chapterNumber: chapter.chapterNumber,
@@ -195,7 +207,8 @@ class LearningJourneyRepository {
 		}
 
 		const structuredJourney: Record<string, StructuredJourney> = {};
-		for (const record of learningJourney) {
+		for (const record of filteredLearningJourney) {
+			// Rest of the loop logic stays the same
 			const { moduleId, moduleName, courseId, courseName, scenarioId, scenarioName } = record;
 			if (!structuredJourney[moduleId]) {
 				structuredJourney[moduleId] = {
@@ -234,6 +247,7 @@ class LearningJourneyRepository {
 			);
 		}
 
+		// Continue with the rest of your function as is
 		for (const module of Object.values(structuredJourney)) {
 			for (const course of Object.values(module.courses)) {
 				const allCompleted =
