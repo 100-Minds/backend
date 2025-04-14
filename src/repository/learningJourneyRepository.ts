@@ -17,9 +17,7 @@ class LearningJourneyRepository {
 
 	addToLearningJourney = async (moduleId: string) => {
 		const module = await knexDb('course_module').where({ id: moduleId, isDeleted: false }).first();
-		const courses = await knexDb('course')
-			.where({ moduleId, isDeleted: false })
-			.select('id', 'name');
+		const courses = await knexDb('course').where({ moduleId, isDeleted: false }).select('id', 'name');
 
 		if (!module || courses.length === 0) {
 			return [];
@@ -37,7 +35,7 @@ class LearningJourneyRepository {
 				moduleId,
 				moduleName: module.name,
 				courseId: course.id,
-				courseName: course.name
+				courseName: course.name,
 			});
 		}
 		if (learningJourneyEntries.length > 0) {
@@ -159,13 +157,9 @@ class LearningJourneyRepository {
 			.select('id as courseId');
 
 		const activeCourseIds = new Set(activeCourses.map((course) => course.courseId));
+		console.log(activeCourseIds);
 
-		const learningJourney = await knexDb('learning_journey').select(
-			'moduleId',
-			'moduleName',
-			'courseId',
-			'courseName'
-		);
+		const learningJourney = await knexDb('learning_journey').select('moduleId', 'moduleName', 'courseId', 'courseName');
 
 		// Filter learning journey to include only active courses
 		const filteredLearningJourney = learningJourney.filter((record) => activeCourseIds.has(record.courseId));
@@ -281,10 +275,7 @@ class LearningJourneyRepository {
 	};
 
 	getAllUserCourseLearningJourney = async (userId: string) => {
-		const learningJourney = await knexDb('learning_journey').select(
-			'courseId',
-			'courseName'
-		);
+		const learningJourney = await knexDb('learning_journey').select('courseId', 'courseName');
 
 		const courseIds = [...new Set(learningJourney.map((record) => record.courseId))];
 
@@ -318,7 +309,7 @@ class LearningJourneyRepository {
 
 		const structuredCourses: Record<string, StructuredCourse & { courseStatus: 'completed' | 'not-completed' }> = {};
 		for (const record of learningJourney) {
-			const { courseId, courseName} = record;
+			const { courseId, courseName } = record;
 			if (!structuredCourses[courseId]) {
 				structuredCourses[courseId] = {
 					courseId,
