@@ -1,7 +1,6 @@
 export interface IPowerSkill {
 	id: string;
 	powerskill: string;
-	userId: string;
 	isDeleted: boolean;
 	created_at?: Date;
 	updated_at?: Date;

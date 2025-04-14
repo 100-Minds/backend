@@ -5,7 +5,6 @@ export async function up(knex: Knex): Promise<void> {
 		table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
 		table.string('scenario').notNullable();
 		table.string('scenarioImage').notNullable();
-		table.uuid('userId').references('id').inTable('users').onDelete('CASCADE');
 		table.boolean('isDeleted').defaultTo(false);
 		table.timestamps(true, true);
 	});

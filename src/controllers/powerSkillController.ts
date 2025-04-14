@@ -25,7 +25,6 @@ export class PowerSkillController {
 
 		const [createdPowerSkill] = await powerSkillRepository.create({
 			powerskill: skill,
-			userId: user.id,
 		});
 
 		if (!createdPowerSkill) {
@@ -93,9 +92,6 @@ export class PowerSkillController {
 		if (!existingSkill) {
 			throw new AppError('Power skill not found', 404);
 		}
-		if (existingSkill.userId !== user.id) {
-			throw new AppError('You are not authorized to update this power skill', 403);
-		}
 		if (existingSkill.isDeleted) {
 			throw new AppError('Power skill has already been deleted', 400);
 		}
@@ -125,9 +121,6 @@ export class PowerSkillController {
 		const existingSkill = await powerSkillRepository.findById(skillId);
 		if (!existingSkill) {
 			throw new AppError('Power skill not found', 404);
-		}
-		if (existingSkill.userId !== user.id) {
-			throw new AppError('You are not authorized to delete this power skill', 403);
 		}
 		if (existingSkill.isDeleted) {
 			throw new AppError('Power skill has already been deleted', 400);

@@ -32,7 +32,6 @@ export class ScenarioController {
 
 		const [createScenario] = await scenarioRepository.create({
 			scenario,
-			userId: user.id,
 			scenarioImage,
 		});
 
@@ -101,10 +100,6 @@ export class ScenarioController {
 			throw new AppError('Scenario not found', 404);
 		}
 
-		if (extinguishScenario.userId !== user.id) {
-			throw new AppError('You are not authorized to update this scenario', 403);
-		}
-
 		if (extinguishScenario.isDeleted) {
 			throw new AppError('Scenario has already been deleted', 400);
 		}
@@ -151,9 +146,6 @@ export class ScenarioController {
 		const extinguishScenario = await scenarioRepository.findById(scenarioId);
 		if (!extinguishScenario) {
 			throw new AppError('Scenario not found', 404);
-		}
-		if (extinguishScenario.userId !== user.id) {
-			throw new AppError('You are not authorized to delete this scenario', 403);
 		}
 		if (extinguishScenario.isDeleted) {
 			throw new AppError('Scenario has already been deleted', 400);

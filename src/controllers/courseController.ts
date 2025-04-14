@@ -175,7 +175,6 @@ export class CourseController {
 		const [course] = await courseRepository.create({
 			name,
 			courseImage,
-			userId: user.id,
 			moduleId,
 		});
 		if (!course) {

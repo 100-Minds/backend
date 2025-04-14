@@ -16,7 +16,6 @@ export interface ICourse {
 	name: string;
 	courseImage: string;
 	courseResources: string | null;
-	userId: string;
 	moduleId: string;
 	scenarioName: string | null;
 	scenarioId: string | null;
