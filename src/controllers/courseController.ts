@@ -38,7 +38,6 @@ export class CourseController {
 
 		const module = await courseRepository.createModule({
 			name,
-			userId: user.id,
 		});
 
 		return AppResponse(res, 201, toJSON(module), 'Module created successfully');

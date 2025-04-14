@@ -5,7 +5,6 @@ import { IScenario } from './scenario';
 export interface IModule {
 	id: string;
 	name: string;
-	userId: string;
 	isDeleted: boolean;
 	created_at?: Date;
 	updated_at?: Date;
