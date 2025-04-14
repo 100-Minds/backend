@@ -3,7 +3,6 @@ import { LearningStatus } from '../constants';
 export interface StructuredCourse {
 	courseId: string;
 	courseName: string;
-	scenarios: { scenarioId: string; scenarioName: string }[];
 	chapters: { chapterId: string; chapterTitle: string }[];
 }
 
@@ -22,8 +21,6 @@ export interface StructuredJourney {
 		{
 			courseId: string;
 			courseName: string;
-			scenarioId: string;
-			scenarioName: string;
 			status: string;
 			chapters: { chapterId: string; status: string; chapterNumber: number }[];
 		}

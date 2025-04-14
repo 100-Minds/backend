@@ -19,7 +19,7 @@ class LearningJourneyRepository {
 		const module = await knexDb('course_module').where({ id: moduleId, isDeleted: false }).first();
 		const courses = await knexDb('course')
 			.where({ moduleId, isDeleted: false })
-			.select('id', 'name', 'scenarioId', 'scenarioName');
+			.select('id', 'name');
 
 		if (!module || courses.length === 0) {
 			return [];
@@ -37,9 +37,7 @@ class LearningJourneyRepository {
 				moduleId,
 				moduleName: module.name,
 				courseId: course.id,
-				courseName: course.name,
-				scenarioId: course.scenarioId,
-				scenarioName: course.scenarioName,
+				courseName: course.name
 			});
 		}
 		if (learningJourneyEntries.length > 0) {
@@ -51,7 +49,7 @@ class LearningJourneyRepository {
 
 	getAllLearningJourney = async () => {
 		const learningJourneyRecords = await knexDb('learning_journey')
-			.select('moduleId', 'moduleName', 'courseId', 'courseName', 'scenarioId', 'scenarioName', 'isRequired')
+			.select('moduleId', 'moduleName', 'courseId', 'courseName', 'isRequired')
 			.orderBy('created_at', 'asc');
 
 		const structuredLearning: Record<string, StructuredModule> = {};
@@ -72,17 +70,8 @@ class LearningJourneyRepository {
 				structuredLearning[record.moduleId].courses[record.courseId] = {
 					courseId: record.courseId,
 					courseName: record.courseName,
-					scenarios: [],
 					chapters: [],
 				};
-			}
-
-			// Add scenario to the course
-			if (record.scenarioId) {
-				structuredLearning[record.moduleId].courses[record.courseId].scenarios.push({
-					scenarioId: record.scenarioId,
-					scenarioName: record.scenarioName,
-				});
 			}
 		}
 
@@ -131,7 +120,7 @@ class LearningJourneyRepository {
 
 		const course = await knexDb('course')
 			.where({ id: chapter.courseId, isDeleted: false })
-			.select('id', 'name', 'moduleId', 'scenarioId', 'scenarioName')
+			.select('id', 'name', 'moduleId')
 			.first();
 
 		const module = await knexDb('course_module')
@@ -146,8 +135,6 @@ class LearningJourneyRepository {
 			courseId: course.id,
 			courseName: course.name,
 			chapterId: chapter.id,
-			scenarioId: course.scenarioId,
-			scenarioName: course.scenarioName,
 			status: LearningStatus.COMPLETED,
 		};
 
@@ -159,7 +146,7 @@ class LearningJourneyRepository {
 	getUserLearningJourneyByChapterId = async (userId: string, chapterId: string) => {
 		const learningJourney = await knexDb('user_learning_journey')
 			.where({ userId, chapterId })
-			.select('moduleId', 'moduleName', 'courseId', 'courseName', 'chapterId', 'scenarioId', 'scenarioName');
+			.select('moduleId', 'moduleName', 'courseId', 'courseName', 'chapterId');
 		return learningJourney;
 	};
 
@@ -177,9 +164,7 @@ class LearningJourneyRepository {
 			'moduleId',
 			'moduleName',
 			'courseId',
-			'courseName',
-			'scenarioId',
-			'scenarioName'
+			'courseName'
 		);
 
 		// Filter learning journey to include only active courses
@@ -209,7 +194,7 @@ class LearningJourneyRepository {
 		const structuredJourney: Record<string, StructuredJourney> = {};
 		for (const record of filteredLearningJourney) {
 			// Rest of the loop logic stays the same
-			const { moduleId, moduleName, courseId, courseName, scenarioId, scenarioName } = record;
+			const { moduleId, moduleName, courseId, courseName } = record;
 			if (!structuredJourney[moduleId]) {
 				structuredJourney[moduleId] = {
 					moduleId,
@@ -222,8 +207,6 @@ class LearningJourneyRepository {
 				structuredJourney[moduleId].courses[courseId] = {
 					courseId,
 					courseName,
-					scenarioId,
-					scenarioName,
 					status: 'not-completed',
 					chapters: [],
 				};
@@ -266,7 +249,7 @@ class LearningJourneyRepository {
 
 	getAllCourseLearningJourney = async () => {
 		const learningJourneyRecords = await knexDb('learning_journey')
-			.select('courseId', 'courseName', 'scenarioId', 'scenarioName')
+			.select('courseId', 'courseName')
 			.orderBy('created_at', 'asc');
 
 		const structuredLearning: Record<string, StructuredCourse> = {};
@@ -275,17 +258,8 @@ class LearningJourneyRepository {
 				structuredLearning[record.courseId] = {
 					courseId: record.courseId,
 					courseName: record.courseName,
-					scenarios: [],
 					chapters: [],
 				};
-			}
-
-			const course = structuredLearning[record.courseId];
-			if (record.scenarioId && !course.scenarios.some((s) => s.scenarioId === record.scenarioId)) {
-				course.scenarios.push({
-					scenarioId: record.scenarioId,
-					scenarioName: record.scenarioName,
-				});
 			}
 		}
 
@@ -309,9 +283,7 @@ class LearningJourneyRepository {
 	getAllUserCourseLearningJourney = async (userId: string) => {
 		const learningJourney = await knexDb('learning_journey').select(
 			'courseId',
-			'courseName',
-			'scenarioId',
-			'scenarioName'
+			'courseName'
 		);
 
 		const courseIds = [...new Set(learningJourney.map((record) => record.courseId))];
@@ -346,21 +318,16 @@ class LearningJourneyRepository {
 
 		const structuredCourses: Record<string, StructuredCourse & { courseStatus: 'completed' | 'not-completed' }> = {};
 		for (const record of learningJourney) {
-			const { courseId, courseName, scenarioId, scenarioName } = record;
+			const { courseId, courseName} = record;
 			if (!structuredCourses[courseId]) {
 				structuredCourses[courseId] = {
 					courseId,
 					courseName,
-					scenarios: [],
 					chapters: [],
 					courseStatus: 'not-completed',
 				};
 			}
 
-			// Avoid duplicates
-			if (!structuredCourses[courseId].scenarios.some((s) => s.scenarioId === scenarioId)) {
-				structuredCourses[courseId].scenarios.push({ scenarioId, scenarioName });
-			}
 			if (courseChaptersMap[courseId]) {
 				const sortedChapters = [...courseChaptersMap[courseId].values()].sort(
 					(a, b) => a.chapterNumber - b.chapterNumber
