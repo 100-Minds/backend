@@ -7,8 +7,8 @@ export async function up(knex: Knex): Promise<void> {
 		table.string('moduleName').notNullable();
 		table.uuid('courseId').references('id').inTable('course').onDelete('CASCADE').notNullable();
 		table.string('courseName').notNullable();
-		table.uuid('scenarioId').references('id').inTable('sys_scenario').onDelete('CASCADE').notNullable();
-		table.string('scenarioName').notNullable();
+		// table.uuid('scenarioId').references('id').inTable('sys_scenario').onDelete('CASCADE').notNullable();
+		// table.string('scenarioName').notNullable();
 		table.boolean('isRequired').defaultTo(false);
 		table.timestamps(true, true);
 	});
