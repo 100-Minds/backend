@@ -11,7 +11,7 @@ import {
 	videoUploadSuccessfulEmail,
 } from '@/common/utils';
 import { catchAsync } from '@/middlewares';
-import { courseRepository, powerSkillRepository, scenarioRepository } from '@/repository';
+import { courseRepository, learningJourneyRepository, powerSkillRepository, scenarioRepository } from '@/repository';
 import { CourseStatus, VideoUploadStatus } from '@/common/constants';
 import { ENVIRONMENT } from '@/common/config';
 import { ICourseChapter } from '@/common/interfaces';
@@ -155,7 +155,7 @@ export class CourseController {
 			throw new AppError('Course name, moduleId and at least one power skill are required', 400);
 		}
 
-		const extinguishCourse = await courseRepository.getCourseByName(user.id, name);
+		const extinguishCourse = await courseRepository.getCourseByName(name);
 		if (extinguishCourse) {
 			throw new AppError('Course name exist already', 400);
 		}
@@ -180,7 +180,11 @@ export class CourseController {
 			throw new AppError('Failed to create course', 500);
 		}
 
-		return AppResponse(res, 201, toJSON([course]), 'Course created successfully');
+		AppResponse(res, 201, toJSON([course]), 'Course created successfully');
+
+		setImmediate(async () => {
+			await learningJourneyRepository.addToLearningJourney(moduleId);
+		});
 	});
 
 	getCourse = catchAsync(async (req: Request, res: Response) => {

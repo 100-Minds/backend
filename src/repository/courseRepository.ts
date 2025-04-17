@@ -62,8 +62,8 @@ class CourseRepository {
 		return await knexDb.table('course').insert(payload).returning('*');
 	};
 
-	getCourseByName = async (userId: string, name: string): Promise<ICourse | null> => {
-		return await knexDb.table('course').where({ userId, name, isDeleted: false }).first();
+	getCourseByName = async (name: string): Promise<ICourse | null> => {
+		return await knexDb.table('course').where({ name, isDeleted: false }).first();
 	};
 
 	getCourse = async (id: string): Promise<ICourse | null> => {
