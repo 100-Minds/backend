@@ -5,7 +5,8 @@ export interface IAssessment {
 	optionB: string;
 	optionC: string;
 	optionD: string;
-	isCorrect: string;
+	optionE: string;
+	isCorrect: string[];
 	courseId: string;
 	created_at?: Date;
 	updated_at?: Date;

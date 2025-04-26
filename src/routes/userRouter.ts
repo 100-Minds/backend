@@ -1024,11 +1024,15 @@ router.post('/update-assessment', userController.updateUserAssessment);
  *                 type: string
  *                 format: binary
  *                 description: New logo file for the organization (optional)
+ *               showLogo:
+ *                 type: boolean
+ *                 description: Turn on and off logo view (optional)
  *             example:
  *               organizationName: Vigoplacesssss
  *               organizationWebsite: https://vigoplace.com
  *               organizationDescription: Fintech App
  *               organizationLogo: (binary file)
+ *               showLogo: true (boolean) (all is true by default)
  *     responses:
  *       200:
  *         description: Organization updated successfully
@@ -1102,6 +1106,9 @@ router.post('/update-assessment', userController.updateUserAssessment);
  *                         type: string
  *                         nullable: true
  *                         example: Fintech App
+ *                       showLogo:
+ *                         type: boolean
+ *                         example: true
  *                       bio:
  *                         type: string
  *                         nullable: true
@@ -1143,6 +1150,7 @@ router.post('/update-assessment', userController.updateUserAssessment);
  *                     organizationName: Vigoplacesssss
  *                     organizationWebsite: https://vigoplace.com
  *                     organizationDescription: Fintech App
+ *                     showLogo: true
  *                     bio: null
  *                     careerGoals: null
  *                     opportunities: null
@@ -1191,6 +1199,12 @@ router.post('/update-assessment', userController.updateUserAssessment);
  *                   type: string
  *                   example: Failed to update organization data
  */
-router.post('/update-organization', multerUpload.single('organizationLogo'), userController.updateOrganizationalAccount);
+router.post(
+	'/update-organization',
+	multerUpload.single('organizationLogo'),
+	userController.updateOrganizationalAccount
+);
+
+router.post('/admin-update-logo', multerUpload.single('organizationLogo'), userController.updateLogo);
 
 export { router as userRouter };

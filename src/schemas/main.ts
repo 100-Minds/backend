@@ -5,6 +5,8 @@ import { z } from 'zod';
 const passwordRegexMessage =
 	'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character or symbol';
 
+const quizOptionEnum = z.enum(['optionA', 'optionB', 'optionC', 'optionD', 'optionE']);
+
 export const mainSchema = z.object({
 	firstName: z
 		.string()
@@ -62,6 +64,7 @@ export const mainSchema = z.object({
 	organizationName: z.string().min(3).trim(),
 	organizationWebsite: z.string().min(7),
 	organizationDescription: z.string().min(7),
+	category: z.string().min(7).toLowerCase(),
 	bio: z.string().min(7),
 	careerGoals: z.string().min(7),
 	opportunities: z.string().min(7),
@@ -89,12 +92,13 @@ export const mainSchema = z.object({
 	optionB: z.string().trim(),
 	optionC: z.string().trim(),
 	optionD: z.string().trim(),
-	isCorrect: z.enum(['optionA', 'optionB', 'optionC', 'optionD']),
+	optionE: z.string().trim(),
+	isCorrect: z.array(quizOptionEnum).min(1, 'At least one correct option is required'),
 	answers: z
 		.array(
 			z.object({
 				quizId: z.string().uuid(),
-				selectedOption: z.enum(['optionA', 'optionB', 'optionC', 'optionD']),
+				selectedOption: quizOptionEnum,
 			})
 		)
 		.min(1, 'At least one answer is required'),
@@ -102,7 +106,7 @@ export const mainSchema = z.object({
 		.array(
 			z.object({
 				assessmentId: z.string().uuid(),
-				selectedOption: z.enum(['optionA', 'optionB', 'optionC', 'optionD']),
+				selectedOption: quizOptionEnum,
 			})
 		)
 		.min(1, 'At least one answer is required'),
@@ -110,6 +114,7 @@ export const mainSchema = z.object({
 	lastWatched: z.string(),
 	suspend: z.boolean(),
 	makeAdmin: z.boolean(),
+	showLogo: z.string(),
 	isChapterCompleted: z.boolean(),
 	userId: z.string().uuid(),
 	// hideMyDetails: z.boolean().default(false),

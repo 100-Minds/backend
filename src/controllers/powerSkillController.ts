@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
-import { AppError, AppResponse, toJSON } from '@/common/utils';
+import { AppError, AppResponse, toJSON, uploadVideoFile } from '@/common/utils';
 import { catchAsync } from '@/middlewares';
 import { powerSkillRepository } from '@/repository';
+import { IPowerSkill } from '@/common/interfaces';
 
 export class PowerSkillController {
 	createPowerSkill = catchAsync(async (req: Request, res: Response) => {
-		const { skill } = req.body;
-		const { user } = req;
+		const { skill, category } = req.body;
+		const { user, file } = req;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -17,16 +18,29 @@ export class PowerSkillController {
 		if (!skill) {
 			throw new AppError('Skill is required', 400);
 		}
+		if (!file) {
+			throw new AppError('Power skill image is required', 400);
+		}
+		if (!category) {
+			throw new AppError('Category is required', 400);
+		}
 
 		const existingSkill = await powerSkillRepository.findBySkillName(skill);
 		if (existingSkill) {
 			throw new AppError('Power skill already exists', 400);
 		}
 
-		const [createdPowerSkill] = await powerSkillRepository.create({
-			powerskill: skill,
+		const { secureUrl: skillImage } = await uploadVideoFile({
+			fileName: `skill-video/${Date.now()}-${file.originalname}`,
+			buffer: file.buffer,
+			mimetype: file.mimetype,
 		});
 
+		const [createdPowerSkill] = await powerSkillRepository.create({
+			powerskill: skill,
+			skillImage,
+			category,
+		});
 		if (!createdPowerSkill) {
 			throw new AppError('Failed to create power skill', 500);
 		}
@@ -72,8 +86,8 @@ export class PowerSkillController {
 	});
 
 	updatePowerSkill = catchAsync(async (req: Request, res: Response) => {
-		const { skill, skillId } = req.body;
-		const { user } = req;
+		const { skill, skillId, category } = req.body;
+		const { user, file } = req;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -96,7 +110,25 @@ export class PowerSkillController {
 			throw new AppError('Power skill has already been deleted', 400);
 		}
 
-		const updatedSkill = await powerSkillRepository.update(skillId, { powerskill: skill });
+		let updatedSkill: IPowerSkill[] | null;
+		if (file) {
+			const { secureUrl: skillImage } = await uploadVideoFile({
+				fileName: `skill-video/${Date.now()}-${file.originalname}`,
+				buffer: file.buffer,
+				mimetype: file.mimetype,
+			});
+
+			updatedSkill = await powerSkillRepository.update(skillId, {
+				skillImage,
+				powerskill: skill,
+				...(category && category.trim() ? { category } : null),
+			});
+		} else {
+			updatedSkill = await powerSkillRepository.update(skillId, {
+				powerskill: skill,
+				...(category && category.trim() ? { category } : null),
+			});
+		}
 		if (!updatedSkill) {
 			throw new AppError('Failed to update power skill', 500);
 		}

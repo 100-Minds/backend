@@ -144,6 +144,43 @@ export const uploadDocumentFile = async (payload: IAwsUploadFile): Promise<{ sec
 	}
 };
 
+export const uploadVideoFile = async (payload: IAwsUploadFile): Promise<{ secureUrl: string }> => {
+	const { fileName, buffer, mimetype } = payload;
+
+	if (!fileName || !buffer || !mimetype) {
+		throw new AppError('File name, buffer, and mimetype are required', 400);
+	}
+
+	const MAX_FILE_SIZE = 10 * 1024 * 1024;
+	if (buffer.length > MAX_FILE_SIZE) {
+		throw new AppError('File size exceeds 10MB limit', 400);
+	}
+
+	const validVideoTypes = ['video/mp4', 'video/mov', 'video/webm', 'video/avi'];
+	if (!validVideoTypes.includes(mimetype)) {
+		throw new AppError('Invalid video format. Supported formats: mp4, mov, webm, avi', 400);
+	}
+
+	const uploadParams = {
+		Bucket: ENVIRONMENT.R2.BUCKET_NAME,
+		Key: fileName,
+		Body: buffer,
+		ContentType: mimetype,
+	};
+
+	try {
+		const command = new PutObjectCommand(uploadParams);
+		await r2.send(command);
+
+		const secureUrl = `${ENVIRONMENT.R2.PUBLIC_URL}/${fileName}`;
+
+		return { secureUrl };
+	} catch (error) {
+		console.log(error);
+		throw new AppError('Error uploading video to R2', 500);
+	}
+};
+
 const extractObjectKey = (fileUrl: string): string | null => {
 	const match = fileUrl.match(/\.r2\.dev\/(.+)/);
 	return match ? match[1] : null;

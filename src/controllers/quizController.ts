@@ -7,7 +7,7 @@ import { IQuiz } from '@/common/interfaces';
 class QuizController {
 	createQuiz = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { question, chapterId, courseId, optionA, optionB, optionC, optionD, isCorrect } = req.body;
+		const { question, chapterId, courseId, optionA, optionB, optionC, optionD, optionE, isCorrect } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -21,7 +21,9 @@ class QuizController {
 			optionB,
 			optionC,
 			optionD,
+			optionE,
 		};
+
 		if (!question) {
 			throw new AppError('Question is required', 400);
 		}
@@ -37,14 +39,22 @@ class QuizController {
 		if (!validOptions.optionB) {
 			throw new AppError('Option B is required', 400);
 		}
-		if (!isCorrect) {
-			throw new AppError('Correct answer is required', 400);
+		if (!isCorrect || !Array.isArray(isCorrect) || isCorrect.length === 0) {
+			throw new AppError('At least one correct answer is required', 400);
 		}
+
+		// Get available options that have values
 		const providedOptions = Object.entries(validOptions)
 			.filter(([, value]) => typeof value === 'string' && value.trim() !== '')
 			.map(([key]) => key);
-		if (!providedOptions.includes(isCorrect)) {
-			throw new AppError(`Correct answer must match one of the provided options: ${providedOptions.join(', ')}`, 400);
+
+		// Validate that all correct answers are among the provided options
+		const invalidAnswers = isCorrect.filter((answer) => !providedOptions.includes(answer));
+		if (invalidAnswers.length > 0) {
+			throw new AppError(
+				`Correct answers must match the provided options. Invalid options: ${invalidAnswers.join(', ')}`,
+				400
+			);
 		}
 
 		const chapter = await courseRepository.getChapter(chapterId);
@@ -64,8 +74,9 @@ class QuizController {
 			courseId,
 			optionA,
 			optionB,
-			...(validOptions.optionC && validOptions.optionC ? { optionC: validOptions.optionC } : null),
-			...(validOptions.optionA && validOptions.optionD ? { optionD: validOptions.optionD } : null),
+			...(validOptions.optionC && { optionC: validOptions.optionC }),
+			...(validOptions.optionD && { optionD: validOptions.optionD }),
+			...(validOptions.optionE && { optionE: validOptions.optionE }),
 			isCorrect,
 		});
 		if (!quiz) {
@@ -115,7 +126,7 @@ class QuizController {
 
 	updateQuiz = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { quizId, question, chapterId, optionA, optionB, optionC, optionD, isCorrect } = req.body;
+		const { quizId, question, chapterId, optionA, optionB, optionC, optionD, optionE, isCorrect } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -132,28 +143,54 @@ class QuizController {
 			throw new AppError('Quiz not found', 404);
 		}
 
+		///ee
+		const questionExist = await quizRepository.findQuizByQuestionAndChapterId(question, chapterId);
+		if (questionExist) {
+			throw new AppError('Question already exists', 400);
+		}
+
 		const updatedOptions = {
 			optionA: optionA ?? quiz.optionA,
 			optionB: optionB ?? quiz.optionB,
-			optionC: optionC ?? null,
-			optionD: optionD ?? null,
+			optionC: optionC ?? quiz.optionC ?? null,
+			optionD: optionD ?? quiz.optionD ?? null,
+			optionE: optionE ?? quiz.optionE ?? null,
 		};
 
 		const availableOptions = ['optionA', 'optionB'];
 		if (updatedOptions.optionC) availableOptions.push('optionC');
 		if (updatedOptions.optionD) availableOptions.push('optionD');
-		if (!availableOptions.includes(isCorrect)) {
-			throw new AppError(`Correct answer must be one of the provided options: ${availableOptions.join(', ')}`, 400);
+		if (updatedOptions.optionE) availableOptions.push('optionE');
+
+		///e
+		let correctAnswers = isCorrect;
+		if (correctAnswers) {
+			if (!Array.isArray(correctAnswers)) {
+				correctAnswers = [correctAnswers];
+			}
+
+			const invalidAnswers: string[] = correctAnswers.filter((answer: string) => !availableOptions.includes(answer));
+			if (invalidAnswers.length > 0) {
+				throw new AppError(
+					`Correct answers must be from the provided options. Invalid options: ${invalidAnswers.join(', ')}. Available options: ${availableOptions.join(', ')}`,
+					400
+				);
+			}
+		} else {
+			correctAnswers = quiz.isCorrect;
 		}
 
-		const updatedQuizData: IQuiz = {
+
+		///e
+		const updatedQuizData: Partial<IQuiz> = {
 			...(question && { question }),
 			...(chapterId && { chapterId }),
 			optionA: updatedOptions.optionA,
 			optionB: updatedOptions.optionB,
 			optionC: updatedOptions.optionC,
 			optionD: updatedOptions.optionD,
-			isCorrect,
+			optionE: updatedOptions.optionE,
+			isCorrect: correctAnswers,
 		};
 		if (Object.keys(updatedQuizData).length === 0) {
 			throw new AppError('No fields to update', 400);

@@ -114,10 +114,48 @@ export class UserController {
 		return AppResponse(res, 200, toJSON(updateUserAssessment), 'User assessment updated successfully');
 	});
 
+	updateLogo = catchAsync(async (req: Request, res: Response) => {
+		const { user, file } = req;
+		const { userId } = req.body;
+
+		if (!user) {
+			throw new AppError('Please log in again', 400);
+		}
+		if (user.role == 'user') {
+			throw new AppError('Only admins can update user logo', 403);
+		}
+		if (!userId) {
+			throw new AppError('User ID is required', 400);
+		}
+		if (!file) {
+			throw new AppError('Logo is required', 400);
+		}
+
+		const extinguishUser = await userRepository.findById(userId);
+		if (!extinguishUser) {
+			throw new AppError('User not found', 404);
+		}
+
+		const { secureUrl: organizationLogo } = await uploadPictureFile({
+			fileName: `organization-logo/${Date.now()}-${file.originalname}`,
+			buffer: file.buffer,
+			mimetype: file.mimetype,
+		});
+
+		const updateUserLogo = await userRepository.update(userId, {
+			organizationLogo,
+		});
+		if (!updateUserLogo) {
+			throw new AppError('Failed to update user logo', 500);
+		}
+
+		return AppResponse(res, 200, toJSON(updateUserLogo), 'User logo updated successfully');
+	});
+
 	updateOrganizationalAccount = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
 		const { file } = req;
-		const { organizationName, organizationWebsite, organizationDescription } = req.body;
+		const { organizationName, organizationWebsite, organizationDescription, showLogo } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -126,7 +164,12 @@ export class UserController {
 			throw new AppError('Only organizational accounts can update their account', 403);
 		}
 
-		const organizationData: Partial<IUser> = { organizationName, organizationWebsite, organizationDescription };
+		const organizationData: Partial<IUser> = {
+			organizationName,
+			organizationWebsite,
+			organizationDescription,
+			showLogo,
+		};
 		if (organizationName) organizationData.organizationName = organizationName;
 		if (file) {
 			const { secureUrl } = await uploadPictureFile({
@@ -138,6 +181,9 @@ export class UserController {
 		}
 		if (organizationWebsite) organizationData.organizationWebsite = organizationWebsite;
 		if (organizationDescription) organizationData.organizationDescription = organizationDescription;
+		if (showLogo !== undefined) {
+			organizationData.showLogo = showLogo === 'true' ? true : showLogo === 'false' ? false : Boolean(showLogo);
+		}
 
 		const updateOrganization = await userRepository.update(user.id, organizationData);
 		if (!updateOrganization) {

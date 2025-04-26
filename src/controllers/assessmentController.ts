@@ -7,7 +7,7 @@ import { IAssessment } from '@/common/interfaces';
 class AssessmentController {
 	createAssessment = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { question, courseId, optionA, optionB, optionC, optionD, isCorrect } = req.body;
+		const { question, courseId, optionA, optionB, optionC, optionD, optionE, isCorrect } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -21,7 +21,9 @@ class AssessmentController {
 			optionB,
 			optionC,
 			optionD,
+			optionE,
 		};
+
 		if (!question) {
 			throw new AppError('Question is required', 400);
 		}
@@ -34,14 +36,21 @@ class AssessmentController {
 		if (!validOptions.optionB) {
 			throw new AppError('Option B is required', 400);
 		}
-		if (!isCorrect) {
-			throw new AppError('Correct answer is required', 400);
+		if (!isCorrect || !Array.isArray(isCorrect) || isCorrect.length === 0) {
+			throw new AppError('At least one correct answer is required', 400);
 		}
+
 		const providedOptions = Object.entries(validOptions)
 			.filter(([, value]) => typeof value === 'string' && value.trim() !== '')
 			.map(([key]) => key);
-		if (!providedOptions.includes(isCorrect)) {
-			throw new AppError(`Correct answer must match one of the provided options: ${providedOptions.join(', ')}`, 400);
+
+		// Validate that all correct answers are among the provided options
+		const invalidAnswers = isCorrect.filter((answer) => !providedOptions.includes(answer));
+		if (invalidAnswers.length > 0) {
+			throw new AppError(
+				`Correct answers must match the provided options. Invalid options: ${invalidAnswers.join(', ')}`,
+				400
+			);
 		}
 
 		const course = await courseRepository.getCourse(courseId);
@@ -59,6 +68,7 @@ class AssessmentController {
 			optionB,
 			...(validOptions.optionC && validOptions.optionC ? { optionC: validOptions.optionC } : null),
 			...(validOptions.optionA && validOptions.optionD ? { optionD: validOptions.optionD } : null),
+			...(validOptions.optionE && { optionE: validOptions.optionE }),
 			isCorrect,
 		});
 		if (!assessment) {
@@ -85,7 +95,7 @@ class AssessmentController {
 		}
 
 		return AppResponse(res, 200, toJSON([assessment]), 'Assessment retrieved successfully');
-	})
+	});
 
 	findAssessmentByCourseId = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
@@ -108,7 +118,7 @@ class AssessmentController {
 
 	updateAssessment = catchAsync(async (req: Request, res: Response) => {
 		const { user } = req;
-		const { assessmentId, question, optionA, optionB, optionC, optionD, isCorrect } = req.body;
+		const { assessmentId, courseId, question, optionA, optionB, optionC, optionD, optionE, isCorrect } = req.body;
 
 		if (!user) {
 			throw new AppError('Please log in again', 400);
@@ -119,24 +129,48 @@ class AssessmentController {
 		if (!assessmentId) {
 			throw new AppError('Assessment ID is required', 400);
 		}
+		if (!courseId) {
+			throw new AppError('Course ID is required', 400);
+		}
 
 		const assessment = await assessmentRepository.findById(assessmentId);
 		if (!assessment) {
 			throw new AppError('Assessment not found', 404);
 		}
 
+		const questionExist = await assessmentRepository.findAssessmentByQuestionAndCourseId(question, courseId);
+		if (questionExist) {
+			throw new AppError('Question already exists', 400);
+		}
+
 		const updatedOptions = {
 			optionA: optionA ?? assessment.optionA,
 			optionB: optionB ?? assessment.optionB,
-			optionC: optionC ?? null,
-			optionD: optionD ?? null,
+			optionC: optionC ?? assessment.optionC ?? null,
+			optionD: optionD ?? assessment.optionD ?? null,
+			optionE: optionE ?? assessment.optionE ?? null,
 		};
 
 		const availableOptions = ['optionA', 'optionB'];
 		if (updatedOptions.optionC) availableOptions.push('optionC');
 		if (updatedOptions.optionD) availableOptions.push('optionD');
-		if (!availableOptions.includes(isCorrect)) {
-			throw new AppError(`Correct answer must be one of the provided options: ${availableOptions.join(', ')}`, 400);
+		if (updatedOptions.optionE) availableOptions.push('optionE');
+
+		let correctAnswers = isCorrect;
+		if (correctAnswers) {
+			if (!Array.isArray(correctAnswers)) {
+				correctAnswers = [correctAnswers];
+			}
+
+			const invalidAnswers: string[] = correctAnswers.filter((answer: string) => !availableOptions.includes(answer));
+			if (invalidAnswers.length > 0) {
+				throw new AppError(
+					`Correct answers must be from the provided options. Invalid options: ${invalidAnswers.join(', ')}. Available options: ${availableOptions.join(', ')}`,
+					400
+				);
+			}
+		} else {
+			correctAnswers = assessment.isCorrect;
 		}
 
 		const updatedAssessmentData: IAssessment = {
@@ -145,7 +179,8 @@ class AssessmentController {
 			optionB: updatedOptions.optionB,
 			optionC: updatedOptions.optionC,
 			optionD: updatedOptions.optionD,
-			isCorrect,
+			optionE: updatedOptions.optionE,
+			isCorrect: correctAnswers,
 		};
 		if (Object.keys(updatedAssessmentData).length === 0) {
 			throw new AppError('No fields to update', 400);

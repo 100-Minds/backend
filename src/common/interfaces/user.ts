@@ -17,6 +17,7 @@ export interface IUser {
 	organizationName: string;
 	organizationWebsite: string;
 	organizationDescription: string;
+	showLogo: boolean;
 	bio: string;
 	careerGoals: string;
 	opportunities: string;

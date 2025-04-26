@@ -1,3 +1,4 @@
+import { multerUpload } from '@/common/config';
 import { powerSkillController } from '@/controllers';
 import { protect } from '@/middlewares/protect';
 import express from 'express';
@@ -346,7 +347,7 @@ router.get('/all', powerSkillController.getAllPowerSkills);
  *                   type: string
  *                   example: Failed to create power skill
  */
-router.post('/create-skill', powerSkillController.createPowerSkill);
+router.post('/create-skill', multerUpload.single('skillImage'), powerSkillController.createPowerSkill);
 /**
  * @openapi
  * /skill/update-skill:
@@ -488,7 +489,7 @@ router.post('/create-skill', powerSkillController.createPowerSkill);
  *                   type: string
  *                   example: Failed to update power skill
  */
-router.post('/update-skill', powerSkillController.updatePowerSkill);
+router.post('/update-skill', multerUpload.single('skillImage'), powerSkillController.updatePowerSkill);
 /**
  * @openapi
  * /skill/delete-skill:

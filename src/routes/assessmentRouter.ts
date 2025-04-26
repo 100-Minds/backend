@@ -11,7 +11,7 @@ router.use(protect);
  * /assessment/create:
  *   post:
  *     summary: Create a new assessment
- *     description: Creates a new assessment for a specific course. Requires authentication via a valid access token. Only admins can create assessments. The request must include a question, courseId, at least two options (optionA and optionB), and the correct answer (isCorrect) which must match one of the options.
+ *     description: Creates a new assessment for a specific course. Requires authentication via a valid access token. Only admins can create assessments. The request must include a question, courseId, at least two options (optionA and optionB), and the correct answers (isCorrect) as an array of option keys that must match the provided options.
  *     tags:
  *       - Assessment
  *     security:
@@ -25,38 +25,45 @@ router.use(protect);
  *             properties:
  *               question:
  *                 type: string
- *                 example: Assessment question
+ *                 example: Which of the following are front-end JavaScript frameworks?
  *                 description: The question for the assessment
  *               courseId:
  *                 type: string
  *                 format: uuid
- *                 example: 070200b9-bd6b-4bde-8a45-99a247ed6f98
+ *                 example: 9c816faa-7a82-4f5e-94ee-1869e77d33c1
  *                 description: The ID of the course the assessment belongs to
  *               optionA:
  *                 type: string
- *                 example: Yes
+ *                 example: React
  *                 description: First option for the assessment
  *               optionB:
  *                 type: string
- *                 example: No
+ *                 example: Angular
  *                 description: Second option for the assessment
  *               optionC:
  *                 type: string
- *                 example: Maybe
+ *                 example: Vue
  *                 description: Third option for the assessment (optional)
  *               optionD:
  *                 type: string
- *                 example: Other
+ *                 example: Django
  *                 description: Fourth option for the assessment (optional)
- *               isCorrect:
+ *               optionE:
  *                 type: string
- *                 example: optionA
- *                 enum:
- *                   - optionA
- *                   - optionB
- *                   - optionC
- *                   - optionD
- *                 description: The key of the correct answer (must match one of the provided options)
+ *                 example: Express
+ *                 description: Fifth option for the assessment (optional)
+ *               isCorrect:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum:
+ *                     - optionA
+ *                     - optionB
+ *                     - optionC
+ *                     - optionD
+ *                     - optionE
+ *                 example: [optionA, optionB, optionC]
+ *                 description: Array of keys of the correct answers (must match provided options)
  *             required:
  *               - question
  *               - courseId
@@ -82,46 +89,53 @@ router.use(protect);
  *                       id:
  *                         type: string
  *                         format: uuid
- *                         example: e2828560-4689-4dd9-bcee-4c4983278da7
+ *                         example: 2cc4470b-dec5-401b-9fc9-10a8ad6c2cae
  *                         description: The ID of the created assessment
  *                       question:
  *                         type: string
- *                         example: Assessment question
+ *                         example: Which of the following are front-end JavaScript frameworks?
  *                         description: The question for the assessment
  *                       optionA:
  *                         type: string
- *                         example: Yes
+ *                         example: React
  *                         description: First option for the assessment
  *                       optionB:
  *                         type: string
- *                         example: No
+ *                         example: Angular
  *                         description: Second option for the assessment
  *                       optionC:
  *                         type: string
- *                         example: Maybe
+ *                         example: Vue
  *                         description: Third option for the assessment (if provided)
  *                       optionD:
  *                         type: string
- *                         example: hsdvyb
+ *                         example: Django
  *                         description: Fourth option for the assessment (if provided)
- *                       isCorrect:
+ *                       optionE:
  *                         type: string
- *                         example: optionA
- *                         enum:
- *                           - optionA
- *                           - optionB
- *                           - optionC
- *                           - optionD
- *                         description: The key of the correct answer
+ *                         example: Express
+ *                         description: Fifth option for the assessment (if provided)
+ *                       isCorrect:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                           enum:
+ *                             - optionA
+ *                             - optionB
+ *                             - optionC
+ *                             - optionD
+ *                             - optionE
+ *                         example: [optionA, optionB, optionC]
+ *                         description: Array of keys of the correct answers
  *                       courseId:
  *                         type: string
  *                         format: uuid
- *                         example: 070200b9-bd6b-4bde-8a45-99a247ed6f98
+ *                         example: 9c816faa-7a82-4f5e-94ee-1869e77d33c1
  *                         description: The ID of the course the assessment belongs to
  *                       created_at:
  *                         type: string
  *                         format: date-time
- *                         example: 2025-04-13T21:49:38.321Z
+ *                         example: 2025-04-18T04:03:59.436Z
  *                         description: The creation date of the assessment
  *                 message:
  *                   type: string
@@ -129,15 +143,16 @@ router.use(protect);
  *               example:
  *                 status: success
  *                 data:
- *                   - id: e2828560-4689-4dd9-bcee-4c4983278da7
- *                     question: Assessment question
- *                     optionA: Yes
- *                     optionB: No
- *                     optionC: Maybe
- *                     optionD: hsdvyb
- *                     isCorrect: optionA
- *                     courseId: 070200b9-bd6b-4bde-8a45-99a247ed6f98
- *                     created_at: 2025-04-13T21:49:38.321Z
+ *                   - id: 2cc4470b-dec5-401b-9fc9-10a8ad6c2cae
+ *                     question: Which of the following are front-end JavaScript frameworks?
+ *                     optionA: React
+ *                     optionB: Angular
+ *                     optionC: Vue
+ *                     optionD: Django
+ *                     optionE: Express
+ *                     isCorrect: [optionA, optionB, optionC]
+ *                     courseId: 9c816faa-7a82-4f5e-94ee-1869e77d33c1
+ *                     created_at: 2025-04-18T04:03:59.436Z
  *                 message: Assessment created successfully
  *       400:
  *         description: Bad Request - Validation errors
@@ -159,7 +174,8 @@ router.use(protect);
  *                     - Course ID is required
  *                     - Option A is required
  *                     - Option B is required
- *                     - Correct answer must match one of the provided options: optionA, optionB, optionC, optionD
+ *                     - At least one correct answer is required
+ *                     - Correct answers must match the provided options. Invalid options: optionX
  *                     - Question already exists
  *       403:
  *         description: Forbidden - User is not an admin
@@ -468,7 +484,7 @@ router.get('/get-assessment', assessmentController.findById);
  * /assessment/update:
  *   post:
  *     summary: Update an existing assessment
- *     description: Updates an existing assessment for a specific assessment ID. Requires authentication via a valid access token. Only admins can update assessments. The request must include the assessment ID and optionally the question, options (optionA, optionB, optionC, optionD), and the correct answer (isCorrect) which must match one of the provided options.
+ *     description: Updates an existing assessment for a specific assessment ID. Requires authentication via a valid access token. Only admins can update assessments. The request must include the assessment ID, course ID, and optionally the question, options (optionA, optionB, optionC, optionD, optionE), and the correct answers (isCorrect) as an array of option keys that must match the provided options.
  *     tags:
  *       - Assessment
  *     security:
@@ -483,39 +499,52 @@ router.get('/get-assessment', assessmentController.findById);
  *               assessmentId:
  *                 type: string
  *                 format: uuid
- *                 example: e2828560-4689-4dd9-bcee-4c4983278da7
+ *                 example: 2cc4470b-dec5-401b-9fc9-10a8ad6c2cae
  *                 description: The ID of the assessment to update
+ *               courseId:
+ *                 type: string
+ *                 format: uuid
+ *                 example: 9c816faa-7a82-4f5e-94ee-1869e77d33c1
+ *                 description: The ID of the course the assessment belongs to
  *               question:
  *                 type: string
- *                 example: Assessment question 2
+ *                 example: Which of the following are front-end JavaScript framework now?
  *                 description: The updated question for the assessment (optional)
  *               optionA:
  *                 type: string
- *                 example: Yes nahh
+ *                 example: React
  *                 description: Updated first option for the assessment (optional)
  *               optionB:
  *                 type: string
- *                 example: No nahh
+ *                 example: Angular
  *                 description: Updated second option for the assessment (optional)
  *               optionC:
  *                 type: string
- *                 example: Maybe not
+ *                 example: Vuetttt
  *                 description: Updated third option for the assessment (optional)
  *               optionD:
  *                 type: string
- *                 example: hsdvyb yes
+ *                 example: Django
  *                 description: Updated fourth option for the assessment (optional)
- *               isCorrect:
+ *               optionE:
  *                 type: string
- *                 example: optionA
- *                 enum:
- *                   - optionA
- *                   - optionB
- *                   - optionC
- *                   - optionD
- *                 description: The key of the updated correct answer (must match one of the provided options)
+ *                 example: Express
+ *                 description: Updated fifth option for the assessment (optional)
+ *               isCorrect:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum:
+ *                     - optionA
+ *                     - optionB
+ *                     - optionC
+ *                     - optionD
+ *                     - optionE
+ *                 example: [optionA, optionB]
+ *                 description: Array of keys of the updated correct answers (optional, must match provided options)
  *             required:
  *               - assessmentId
+ *               - courseId
  *     responses:
  *       200:
  *         description: Assessment updated successfully
@@ -535,46 +564,53 @@ router.get('/get-assessment', assessmentController.findById);
  *                       id:
  *                         type: string
  *                         format: uuid
- *                         example: e2828560-4689-4dd9-bcee-4c4983278da7
+ *                         example: 2cc4470b-dec5-401b-9fc9-10a8ad6c2cae
  *                         description: The ID of the updated assessment
  *                       question:
  *                         type: string
- *                         example: Assessment question 2
- *                         description: The updated question for the assessment
+ *                         example: Which of the following are front-end JavaScript framework now?
+ *                         description: The question for the assessment
  *                       optionA:
  *                         type: string
- *                         example: Yes nahh
- *                         description: Updated first option for the assessment
+ *                         example: React
+ *                         description: First option for the assessment
  *                       optionB:
  *                         type: string
- *                         example: No nahh
- *                         description: Updated second option for the assessment
+ *                         example: Angular
+ *                         description: Second option for the assessment
  *                       optionC:
  *                         type: string
- *                         example: Maybe not
- *                         description: Updated third option for the assessment (if provided)
+ *                         example: Vuetttt
+ *                         description: Third option for the assessment (if provided)
  *                       optionD:
  *                         type: string
- *                         example: hsdvyb yes
- *                         description: Updated fourth option for the assessment (if provided)
- *                       isCorrect:
+ *                         example: Django
+ *                         description: Fourth option for the assessment (if provided)
+ *                       optionE:
  *                         type: string
- *                         example: optionA
- *                         enum:
- *                           - optionA
- *                           - optionB
- *                           - optionC
- *                           - optionD
- *                         description: The key of the updated correct answer
+ *                         example: Express
+ *                         description: Fifth option for the assessment (if provided)
+ *                       isCorrect:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                           enum:
+ *                             - optionA
+ *                             - optionB
+ *                             - optionC
+ *                             - optionD
+ *                             - optionE
+ *                         example: [optionA, optionB]
+ *                         description: Array of keys of the correct answers
  *                       courseId:
  *                         type: string
  *                         format: uuid
- *                         example: 070200b9-bd6b-4bde-8a45-99a247ed6f98
+ *                         example: 9c816faa-7a82-4f5e-94ee-1869e77d33c1
  *                         description: The ID of the course the assessment belongs to
  *                       created_at:
  *                         type: string
  *                         format: date-time
- *                         example: 2025-04-13T21:49:38.321Z
+ *                         example: 2025-04-18T04:03:59.436Z
  *                         description: The creation date of the assessment
  *                 message:
  *                   type: string
@@ -582,15 +618,16 @@ router.get('/get-assessment', assessmentController.findById);
  *               example:
  *                 status: success
  *                 data:
- *                   - id: e2828560-4689-4dd9-bcee-4c4983278da7
- *                     question: Assessment question 2
- *                     optionA: Yes nahh
- *                     optionB: No nahh
- *                     optionC: Maybe not
- *                     optionD: hsdvyb yes
- *                     isCorrect: optionA
- *                     courseId: 070200b9-bd6b-4bde-8a45-99a247ed6f98
- *                     created_at: 2025-04-13T21:49:38.321Z
+ *                   - id: 2cc4470b-dec5-401b-9fc9-10a8ad6c2cae
+ *                     question: Which of the following are front-end JavaScript framework now?
+ *                     optionA: React
+ *                     optionB: Angular
+ *                     optionC: Vuetttt
+ *                     optionD: Django
+ *                     optionE: Express
+ *                     isCorrect: [optionA, optionB]
+ *                     courseId: 9c816faa-7a82-4f5e-94ee-1869e77d33c1
+ *                     created_at: 2025-04-18T04:03:59.436Z
  *                 message: Assessment updated successfully
  *       400:
  *         description: Bad Request - Validation errors
@@ -607,10 +644,11 @@ router.get('/get-assessment', assessmentController.findById);
  *                   example: Assessment ID is required
  *                   enum:
  *                     - Please log in again
- *                     - Only an admin can update an assessment
  *                     - Assessment ID is required
+ *                     - Course ID is required
  *                     - No fields to update
- *                     - Correct answer must be one of the provided options: optionA, optionB, optionC, optionD
+ *                     - Question already exists
+ *                     - Invalid correct answers provided
  *       403:
  *         description: Forbidden - User is not an admin
  *         content:
