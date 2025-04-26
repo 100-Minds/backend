@@ -144,9 +144,11 @@ class QuizController {
 		}
 
 		///ee
-		const questionExist = await quizRepository.findQuizByQuestionAndChapterId(question, chapterId);
-		if (questionExist) {
-			throw new AppError('Question already exists', 400);
+		if (question) {
+			const questionExist = await quizRepository.findQuizByQuestionAndChapterId(question, chapterId);
+			if (questionExist) {
+				throw new AppError('Question already exists', 400);
+			}
 		}
 
 		const updatedOptions = {
@@ -179,7 +181,6 @@ class QuizController {
 		} else {
 			correctAnswers = quiz.isCorrect;
 		}
-
 
 		///e
 		const updatedQuizData: Partial<IQuiz> = {

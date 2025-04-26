@@ -16,6 +16,9 @@ class AssessmentRepository {
 	};
 
 	findAssessmentByQuestionAndCourseId = async (question: string, courseId: string): Promise<IAssessment | null> => {
+		if (!question || !courseId) {
+			throw new Error('Both question and courseId must be provided');
+		}
 		return await knexDb.table('assessment').where({ question, courseId }).first();
 	};
 

@@ -138,9 +138,11 @@ class AssessmentController {
 			throw new AppError('Assessment not found', 404);
 		}
 
-		const questionExist = await assessmentRepository.findAssessmentByQuestionAndCourseId(question, courseId);
-		if (questionExist) {
-			throw new AppError('Question already exists', 400);
+		if (question) {
+			const questionExist = await assessmentRepository.findAssessmentByQuestionAndCourseId(question, courseId);
+			if (questionExist) {
+				throw new AppError('Question already exists', 400);
+			}
 		}
 
 		const updatedOptions = {
